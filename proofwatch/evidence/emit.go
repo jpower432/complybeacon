@@ -1,0 +1,60 @@
+package evidence
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+
+	"go.opentelemetry.io/otel/log"
+	"go.opentelemetry.io/otel/log/global"
+)
+
+type InstrumentationFn func(ctx context.Context, evidence RawEvidence) error
+
+func NewEmitter(store *Store) InstrumentationFn {
+	return func(ctx context.Context, evidence RawEvidence) error {
+		evidenceEvent, err := LogEvidence(ctx, evidence)
+		if err != nil {
+			return err
+		}
+		store.Add(*evidenceEvent)
+		return nil
+	}
+}
+
+// LogEvidence logs the event to the global logger
+func LogEvidence(ctx context.Context, rawEnv RawEvidence) (*EvidenceEvent, error) {
+	logger := global.Logger("proofwatch")
+	event := NewFromEvidence(rawEnv)
+	record := log.Record{}
+	record.SetEventName(event.Summary)
+	record.SetTimestamp(event.Timestamp)
+	record.SetObservedTimestamp(time.Now())
+
+	var hashes []log.Value
+	for hash, digest := range rawEnv.Resource.Digest {
+		hashes = append(hashes, log.StringValue(fmt.Sprintf("%s:%s", strings.ToLower(hash.String()), digest)))
+	}
+
+	// Adding metadata as attributes and full log details as the body
+	record.AddAttributes(
+		log.String("policy.source", rawEnv.Source),
+		log.String("resource.name", rawEnv.Resource.Name),
+		log.String("evidence.id", rawEnv.ID),
+		log.String("policy.decision", rawEnv.Decision),
+		log.String("policy.id", rawEnv.PolicyID),
+		log.Slice("resource.hashes", hashes...),
+	)
+
+	jsonData, err := json.Marshal(rawEnv.Details)
+	if err != nil {
+		return event, err
+	}
+	claimValue := log.BytesValue(jsonData)
+	record.SetBody(claimValue)
+
+	logger.Emit(ctx, record)
+	return event, nil
+}
