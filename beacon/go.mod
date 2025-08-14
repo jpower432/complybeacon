@@ -165,4 +165,4 @@ require (
 	sigs.k8s.io/yaml v1.5.0 // indirect
 )
 
-replace github.com/complytime/complybeacon/truthbeam => github.com/jpower432/complybeacon/truthbeam v0.0.0-20250814210600-a777fb2e7df0
+replace github.com/complytime/complybeacon/truthbeam => github.com/jpower432/complybeacon/truthbeam v0.0.0-20250814222354-82e5666353eb
