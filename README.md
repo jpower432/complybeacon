@@ -1,5 +1,9 @@
 # complybeacon
 
+**ComplyBeacon** is an observability toolkit designed to collect, normalize, and enrich compliance evidence extending OpenTelemetry (OTEL) standard.
+
+By bridging the gap between raw policy scanner output and modern logging pipelines, it provides a unified, enriched, and auditable data stream for security and compliance analysis.
+
 > WARNING: All components are under initial development and are **not** ready for production use.
 
 ## Components
@@ -51,9 +55,10 @@ podman-compose up --build
 
 # Run proofwatch. This stand up one source type with is a simple push target with raw evidence
 make build
-./bin/proofwatch 
 ./bin/proofwatch --config ./docs/watch.yaml
 
 # Test the pipeline
 curl -X POST http://localhost:8083/v1/push -H "Content-Type: application/json" -d @hack/sampledata/evidence.json
 ```
+
+For additional design details see [`DESIGN.md`](./docs/DESIGN.md)

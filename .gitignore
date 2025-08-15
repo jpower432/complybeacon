@@ -33,5 +33,3 @@ go.work.sum
 
 bin/
 
-# For now
-docs/DESIGN.md
