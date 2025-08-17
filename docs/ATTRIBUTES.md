@@ -1,4 +1,4 @@
-# OpenTelemetry Semantic Conventions
+# OpenTelemetry Attributes
 
 This defines a set of attributes used for raw evidence metadata and risk context.
 
