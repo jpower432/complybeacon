@@ -10,8 +10,8 @@ This defines a set of attributes used for raw evidence metadata and risk context
 | `policy.id`       | `string` | The identifier for the policy that was applied.                                                         |
 | `policy.decision` | `string` | The outcome of the policy evaluation (e.g., "deny", "allow").                                           |
 | `policy.source`   | `string` | The source of the policy (e.g., a file path or URL).                                                    |
-| `resource.name`   | `string` | The name of the resource that the policy was applied to.                                                |
-| `resource.hash`   | `string` | A hash or digest of the resource's content.                                                             |
+| `subject.name`    | `string` | The name of the subject that the policy was applied to.                                                 |
+| `subject.uri`     | `string` | The location of the subject                                                                             |
 
 
 ## Risk Context

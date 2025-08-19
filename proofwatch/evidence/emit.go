@@ -3,8 +3,6 @@ package evidence
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel/log"
@@ -33,19 +31,14 @@ func LogEvidence(ctx context.Context, rawEnv RawEvidence) (*EvidenceEvent, error
 	record.SetTimestamp(event.Timestamp)
 	record.SetObservedTimestamp(time.Now())
 
-	var hashes []log.Value
-	for hash, digest := range rawEnv.Resource.Digest {
-		hashes = append(hashes, log.StringValue(fmt.Sprintf("%s:%s", strings.ToLower(hash.String()), digest)))
-	}
-
 	// Adding metadata as attributes and full log details as the body
 	record.AddAttributes(
 		log.String("policy.source", rawEnv.Source),
-		log.String("resource.name", rawEnv.Resource.Name),
+		log.String("subject.name", rawEnv.Subject.Name),
 		log.String("evidence.id", rawEnv.ID),
 		log.String("policy.decision", rawEnv.Decision),
 		log.String("policy.id", rawEnv.PolicyID),
-		log.Slice("resource.hashes", hashes...),
+		log.String("subject,uri", rawEnv.Subject.URI),
 	)
 
 	jsonData, err := json.Marshal(rawEnv.Details)

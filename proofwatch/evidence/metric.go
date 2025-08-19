@@ -61,7 +61,7 @@ func (co *EvidenceObserver) observeCallback(ctx context.Context, o metric.Observ
 
 		attributes := metric.WithAttributes(
 			attribute.String("policy.source", rawEnv.Source),
-			attribute.String("resource.name", rawEnv.Resource.Name),
+			attribute.String("resource.name", rawEnv.Subject.Name),
 			attribute.String("evidenceEvent.id", rawEnv.ID),
 			attribute.String("policy.decision", rawEnv.Decision),
 			attribute.String("policy.id", rawEnv.PolicyID),

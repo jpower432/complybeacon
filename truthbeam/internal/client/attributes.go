@@ -35,14 +35,14 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 		return fmt.Errorf("missing attribute 'policy.source'")
 	}
 
-	resourceNameVal, ok := attrs.Get("resource.name")
+	subjectNameVal, ok := attrs.Get("subject.name")
 	if !ok {
-		resourceNameVal = pcommon.NewValueStr("unknown")
+		subjectNameVal = pcommon.NewValueStr("unknown")
 	}
 
-	resourceNameHash, ok := attrs.Get("resource.hash")
+	subjectNameURI, ok := attrs.Get("subject.uri")
 	if !ok {
-		resourceNameVal = pcommon.NewValueStr("unknown")
+		subjectNameURI = pcommon.NewValueStr("unknown")
 	}
 
 	logBody := logRecord.Body()
@@ -60,8 +60,8 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 			Decision:  policyDecisionVal.Str(),
 			Details:   json.RawMessage(detailsJSON),
 			Resource: Resource{
-				Name:   resourceNameVal.Str(),
-				Digest: resourceNameHash.Str(),
+				Name: subjectNameVal.Str(),
+				Uri:  subjectNameURI.Str(),
 			},
 		},
 	}

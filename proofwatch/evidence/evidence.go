@@ -25,8 +25,7 @@ func NewFromEvidence(rawEnv RawEvidence) *EvidenceEvent {
 // RawEvidence represents a simplified raw output from a policy engine.
 type RawEvidence struct {
 	Metadata `json:,inline`
-	Details  json.RawMessage `json:"details"`
-	Resource Resource        `json:"resource"`
+	Details  []Resource `json:"details"`
 }
 
 type Metadata struct {
@@ -35,9 +34,13 @@ type Metadata struct {
 	Source    string    `json:"source"`
 	PolicyID  string    `json:"policyId"`
 	Decision  string    `json:"decision"`
+	Subject   Resource  `json:"subject"`
 }
 
 type Resource struct {
-	Name   string               `json:"name"`
-	Digest cryptoutil.DigestSet `json:"digest"`
+	Name      string               `json:"name"`
+	URI       string               `json:"uri"`
+	Content   json.RawMessage      `json:"content"`
+	Digest    cryptoutil.DigestSet `json:"digest"`
+	MediaType string               `json:"mediaType"`
 }

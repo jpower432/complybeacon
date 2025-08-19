@@ -117,12 +117,12 @@ components:
         name:
           type: string
           description: The name of the resource.
-        digest:
+        uri:
           type: string
-          description: A set of cryptographic digests for the resource.
+          description: Location of the resource
       required:
         - name
-        - digest
+        - uri
 
     EnrichmentResponse:
       type: object

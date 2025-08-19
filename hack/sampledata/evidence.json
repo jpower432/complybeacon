@@ -4,11 +4,17 @@
   "source": "OPA",
   "policyId": "github-branch-protection",
   "decision": "pass",
-  "details": {
-    "pass": true
-  },
-  "resource": {
-    "name": "github.com/example/repo",
+  "details": [
+    {
+      "name": "github.com/example/repo",
+      "digest": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "subject": {
+    "name": "example-repo",
+    "uri": "github.com/example/repo",
     "digest": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }

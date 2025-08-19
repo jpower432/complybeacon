@@ -124,11 +124,11 @@ type RawEvidence struct {
 
 // Resource defines model for Resource.
 type Resource struct {
-	// Digest A set of cryptographic digests for the resource.
-	Digest string `json:"digest"`
-
 	// Name The name of the resource.
 	Name string `json:"name"`
+
+	// Uri Location of the resource
+	Uri string `json:"uri"`
 }
 
 // Result The possible outcomes of an evaluation or assessment.
