@@ -47,11 +47,11 @@ func SetupTLS(server *http.Server, config Config) (string, string) {
 	server.TLSConfig = tlsConfig
 
 	if config.Certificate.PublicKey == "" {
-		log.Fatal("Invalid certification configuration please add certConfig.cert to the configuration.")
+		log.Fatal("Invalid certification configuration. Please add certConfig.cert to the configuration.")
 	}
 
 	if config.Certificate.PrivateKey == "" {
-		log.Fatal("Invalid certification configuration please add certConfig.key to the configuration.")
+		log.Fatal("Invalid certification configuration. Please add certConfig.key to the configuration.")
 	}
 
 	return config.Certificate.PublicKey, config.Certificate.PrivateKey
