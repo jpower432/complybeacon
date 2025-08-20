@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -32,8 +33,9 @@ func NewGinServer(service *compass.Service, port string) *http.Server {
 	api.RegisterHandlers(r, service)
 
 	s := &http.Server{
-		Handler: r,
-		Addr:    net.JoinHostPort("0.0.0.0", port),
+		Handler:           r,
+		Addr:              net.JoinHostPort("0.0.0.0", port),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	return s

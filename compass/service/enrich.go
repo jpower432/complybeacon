@@ -34,7 +34,6 @@ func methodToResult(method layer4.AssessmentMethod) api.Result {
 	default:
 		panic("unhandled default case")
 	}
-	return api.Passed
 }
 
 func determineImpact(scope Scope, inputMethod layer4.AssessmentMethod, plans []transformer.EvaluationPlan) []api.Baseline {

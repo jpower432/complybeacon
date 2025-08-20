@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/complytime/complybeacon/proofwatch/evidence"
 )
@@ -38,8 +39,9 @@ func (s *Source) Run(ctx context.Context) error {
 	mux.HandleFunc("/v1/push", s.push)
 
 	srv := &http.Server{
-		Addr:    s.config.ListenAddress,
-		Handler: mux,
+		Addr:              s.config.ListenAddress,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 	s.server = srv
 

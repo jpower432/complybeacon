@@ -38,7 +38,7 @@ services:
   compass:
     build:
       context: .
-      dockerfile: ./images/Dockerfile.compass
+      dockerfile: ./images/Containerfile.compass
     restart: unless-stopped
     volumes:
       - ./hack/sampledata:/sampledata
@@ -50,7 +50,7 @@ services:
   collector:
     build:
       context: .
-      dockerfile: ./images/Dockerfile.collector
+      dockerfile: ./images/Containerfile.collector
     restart: unless-stopped
     command: ["--config=/etc/otel-collector.yaml"]
     volumes:

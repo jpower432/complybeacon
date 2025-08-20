@@ -8,66 +8,54 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-// EvidenceObserver handles observing and pushing compliance assessment metrics.
+// EvidenceObserver handles observing and pushing evidence processing metrics.
 type EvidenceObserver struct {
-	meter           *metric.Meter
-	observableGauge metric.Float64ObservableGauge
-	store           *Store
+	meter          *metric.Meter
+	droppedCounter metric.Int64Counter
+	processedCount metric.Int64Counter
 }
 
 // NewEvidenceObserver creates a new EvidenceObserver and registers the callback.
-func NewEvidenceObserver(meter metric.Meter, store *Store) (*EvidenceObserver, error) {
+func NewEvidenceObserver(meter metric.Meter) (*EvidenceObserver, error) {
 	co := &EvidenceObserver{
 		meter: &meter,
-		store: store,
 	}
 
 	var err error
-	co.observableGauge, err = meter.Float64ObservableGauge(
-		"evidence_status",
-		metric.WithDescription("Current compliance assessment status (1=COMPLIANT, 0=NOT_COMPLIANT, -1=NOT_APPLICABLE)"),
+	// Create and register the new counter.
+	co.droppedCounter, err = meter.Int64Counter(
+		"evidence_dropped_count",
+		metric.WithDescription("The total number of evidence items dropped due to processing failures."),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create observable gauge: %w", err)
+		return nil, fmt.Errorf("failed to create dropped counter: %w", err)
 	}
 
-	_, err = meter.RegisterCallback(co.observeCallback, co.observableGauge)
+	co.processedCount, err = meter.Int64Counter(
+		"evidence_processed_count",
+		metric.WithDescription("The total number of evidence items processed successfully."),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register callback: %w", err)
+		return nil, fmt.Errorf("failed to create processed counter: %w", err)
 	}
 
 	return co, nil
 }
 
-// observeCallback is the callback function for the observable gauge.
-// It iterates through the evidence data store and observes the status.
-func (co *EvidenceObserver) observeCallback(ctx context.Context, o metric.Observer) error {
-	events := co.store.Events()
-	for _, evidenceEvent := range events {
-		rawEnv := evidenceEvent.Evidence
+func (e *EvidenceObserver) Dropped(ctx context.Context, attrs ...attribute.KeyValue) {
+	e.droppedCounter.Add(ctx, 1, metric.WithAttributes(attrs...))
+}
 
-		statusValue := 0.0
+func (e *EvidenceObserver) Processed(ctx context.Context, attrs ...attribute.KeyValue) {
+	e.processedCount.Add(ctx, 1, metric.WithAttributes(attrs...))
+}
 
-		switch rawEnv.Decision {
-		case "COMPLIANT":
-			statusValue = 1.0
-		case "NOT_COMPLIANT":
-			statusValue = 0.0
-		case "NOT_APPLICABLE":
-			statusValue = -1.0
-		default:
-			statusValue = 0.0
-		}
-
-		attributes := metric.WithAttributes(
-			attribute.String("policy.source", rawEnv.Source),
-			attribute.String("resource.name", rawEnv.Subject.Name),
-			attribute.String("evidenceEvent.id", rawEnv.ID),
-			attribute.String("policy.decision", rawEnv.Decision),
-			attribute.String("policy.id", rawEnv.PolicyID),
-		)
-
-		o.ObserveFloat64(co.observableGauge, statusValue, attributes)
+func ToAttributes(event EvidenceEvent) []attribute.KeyValue {
+	return []attribute.KeyValue{
+		attribute.String("policy.source", event.Evidence.Source),
+		attribute.String("resource.name", event.Evidence.Subject.Name),
+		attribute.String("evidenceEvent.id", event.Evidence.ID),
+		attribute.String("policy.decision", event.Evidence.Decision),
+		attribute.String("policy.id", event.Evidence.PolicyID),
 	}
-	return nil
 }

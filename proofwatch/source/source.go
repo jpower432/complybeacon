@@ -17,13 +17,13 @@ type Source interface {
 
 type Config struct {
 	instrument evidence.InstrumentationFn
+	observer   *evidence.EvidenceObserver
 	PushConfig *push.Config `yaml:"push,omitempty"`
 }
 
-func NewConfig(store *evidence.Store) *Config {
-	return &Config{
-		instrument: evidence.NewEmitter(store),
-	}
+func (c *Config) SetupObserver(observer *evidence.EvidenceObserver) {
+	c.observer = observer
+	c.instrument = evidence.NewEmitter(observer)
 }
 
 func Deploy(ctx context.Context, cfg Config) ([]Source, error) {

@@ -14,7 +14,6 @@ import (
 	"github.com/goccy/go-yaml"
 
 	"github.com/complytime/complybeacon/proofwatch/agent"
-	"github.com/complytime/complybeacon/proofwatch/evidence"
 	"github.com/complytime/complybeacon/proofwatch/source"
 )
 
@@ -36,9 +35,7 @@ func run(ctx context.Context) error {
 	flag.StringVar(&configPath, "config", "./watch.yaml", "Path to proofwatch configuration file")
 	flag.Parse()
 
-	store := evidence.NewStore()
-
-	agt := agent.New(otelEndpoint, store)
+	agt := agent.New(otelEndpoint)
 
 	configPath = filepath.Clean(configPath)
 	configBytes, err := os.ReadFile(filepath.Clean(configPath))
@@ -46,20 +43,20 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("error reading config: %w", err)
 	}
 
-	config := source.NewConfig(store)
-	if err := yaml.Unmarshal(configBytes, config); err != nil {
+	config := source.Config{}
+	if err := yaml.Unmarshal(configBytes, &config); err != nil {
 		return fmt.Errorf("error unmarshaling config: %w", err)
 	}
 
-	if err := agt.Run(ctx, *config); err != nil {
+	if err := agt.Run(ctx, &config); err != nil {
 		return err
 	}
 
-	select {
-	case <-ctx.Done():
-		log.Println("Shutdown received")
-		shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), shutDownTimeout)
-		defer cancelShutdown()
-		return agt.Stop(shutdownCtx)
-	}
+	// Wait for the context to be canceled (e.g., via a signal)
+	<-ctx.Done()
+
+	log.Println("Shutdown received")
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), shutDownTimeout)
+	defer cancelShutdown()
+	return agt.Stop(shutdownCtx)
 }

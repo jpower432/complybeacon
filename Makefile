@@ -63,6 +63,10 @@ clean: ## Removes all generated binaries and Go build caches.
 	@echo "--- Cleanup complete ---"
 .PHONY: clean
 
+workspace: # Setup a go workspace with all modules
+		@go work init && go work use $(MODULES) "truthbeam" "beacon"
+.PHONY: workspace
+
 #------------------------------------------------------------------------------
 # Demo
 #------------------------------------------------------------------------------

@@ -79,6 +79,10 @@ func NewTransformerSet(config *Config) (transformer.Set, error) {
 func NewTransformerFromDir(pluginID transformer.ID, evaluationsPath string) (transformer.Transformer, error) {
 	tfmr := factory.TransformerByID(pluginID)
 	err := filepath.Walk(evaluationsPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() {
 			return nil
 		}

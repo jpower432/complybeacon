@@ -99,6 +99,8 @@ ComplyBeacon is designed to be a flexible toolkit, not a framework. Its componen
 
 ### 1. ProofWatch
 
+> This component's architecture is inspired by Promtail. It uses a source and pipeline model to ingest data and then exports it to the OpenTelemetry Collector.
+
 **Purpose**: To serve as the integration layer between policy scanners and the OpenTelemetry pipeline. It standardizes the output of disparate tools into a single, predictable format.
 
 **Key Responsibilities**:
@@ -139,6 +141,10 @@ log.Slice("resource.hashes", hashes...),
 // Body
 log.BytesValue(jsonData) // Raw JSON from rawEnv.Details
 ```
+
+**Possibly Deployment Patterns**
+
+ProofWatch is packaged as a simple CLI to allow it to be deployed in multitude of ways. Some examples could be as a Kubernetes Sidecar, Job, or DaemonSet, in a CI/CD pipeline, or a serverless function.
 
 **Design Patterns**:
 

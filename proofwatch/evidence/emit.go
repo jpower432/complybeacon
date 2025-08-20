@@ -11,19 +11,20 @@ import (
 
 type InstrumentationFn func(ctx context.Context, evidence RawEvidence) error
 
-func NewEmitter(store *Store) InstrumentationFn {
+func NewEmitter(observer *EvidenceObserver) InstrumentationFn {
 	return func(ctx context.Context, evidence RawEvidence) error {
 		evidenceEvent, err := LogEvidence(ctx, evidence)
 		if err != nil {
 			return err
 		}
-		store.Add(*evidenceEvent)
+		attrs := ToAttributes(evidenceEvent)
+		observer.Processed(ctx, attrs...)
 		return nil
 	}
 }
 
 // LogEvidence logs the event to the global logger
-func LogEvidence(ctx context.Context, rawEnv RawEvidence) (*EvidenceEvent, error) {
+func LogEvidence(ctx context.Context, rawEnv RawEvidence) (EvidenceEvent, error) {
 	logger := global.Logger("proofwatch")
 	event := NewFromEvidence(rawEnv)
 	record := log.Record{}

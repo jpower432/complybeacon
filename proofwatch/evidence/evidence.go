@@ -14,17 +14,17 @@ type EvidenceEvent struct {
 	Evidence  RawEvidence `json:"evidence"`
 }
 
-func NewFromEvidence(rawEnv RawEvidence) *EvidenceEvent {
+func NewFromEvidence(rawEnv RawEvidence) EvidenceEvent {
 	event := EvidenceEvent{
 		Timestamp: time.Now(),
 		Evidence:  rawEnv,
 	}
-	return &event
+	return event
 }
 
 // RawEvidence represents a simplified raw output from a policy engine.
 type RawEvidence struct {
-	Metadata `json:,inline`
+	Metadata `json:",inline"`
 	Details  []Resource `json:"details"`
 }
 

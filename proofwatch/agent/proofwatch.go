@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/complytime/complybeacon/proofwatch/evidence"
 	"github.com/complytime/complybeacon/proofwatch/source"
 )
 
@@ -24,18 +23,16 @@ type ProofWatch struct {
 	// Options
 	otelEndpoint string
 	sources      []source.Source
-	store        *evidence.Store
 }
 
-func New(otelEndpoint string, store *evidence.Store) *ProofWatch {
+func New(otelEndpoint string) *ProofWatch {
 	return &ProofWatch{
 		otelEndpoint: otelEndpoint,
-		store:        store,
 	}
 }
 
 // Run begins scraping for raw evidence and processing it.
-func (s *ProofWatch) Run(ctx context.Context, config source.Config) error {
+func (s *ProofWatch) Run(ctx context.Context, config *source.Config) error {
 	log.Printf("Configuring log exporting to %s", s.otelEndpoint)
 	var err error
 	conn, err := grpc.NewClient(s.otelEndpoint,
@@ -49,9 +46,11 @@ func (s *ProofWatch) Run(ctx context.Context, config source.Config) error {
 	if err != nil {
 		log.Fatalf("error with instrumentation: %v", err)
 	}
-	metricsConfigure(s.store)
 
-	s.sources, err = source.Deploy(ctx, config)
+	observer := metricsConfigure()
+	config.SetupObserver(observer)
+
+	s.sources, err = source.Deploy(ctx, *config)
 	return err
 }
 

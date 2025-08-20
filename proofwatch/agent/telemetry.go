@@ -73,10 +73,10 @@ func otelSDKSetup(ctx context.Context, conn *grpc.ClientConn) (func(context.Cont
 	return shutDown, nil
 }
 
-func metricsConfigure(store *evidence.Store) {
-	var err error
-	_, err = evidence.NewEvidenceObserver(meter, store)
+func metricsConfigure() *evidence.EvidenceObserver {
+	observer, err := evidence.NewEvidenceObserver(meter)
 	if err != nil {
 		log.Fatalf("failed to register callback: %v", err)
 	}
+	return observer
 }

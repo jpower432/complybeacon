@@ -3,18 +3,18 @@
 package main
 
 import (
+	truthbeam "github.com/complytime/complybeacon/truthbeam"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/exporter"
-	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/otelcol"
-	"go.opentelemetry.io/collector/processor"
-	"go.opentelemetry.io/collector/receiver"
 	debugexporter "go.opentelemetry.io/collector/exporter/debugexporter"
 	otlpexporter "go.opentelemetry.io/collector/exporter/otlpexporter"
 	otlphttpexporter "go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/processor"
 	batchprocessor "go.opentelemetry.io/collector/processor/batchprocessor"
-	truthbeam "github.com/complytime/complybeacon/truthbeam"
+	"go.opentelemetry.io/collector/receiver"
 	otlpreceiver "go.opentelemetry.io/collector/receiver/otlpreceiver"
 )
 
@@ -22,8 +22,7 @@ func components() (otelcol.Factories, error) {
 	var err error
 	factories := otelcol.Factories{}
 
-	factories.Extensions, err = otelcol.MakeFactoryMap[extension.Factory](
-	)
+	factories.Extensions, err = otelcol.MakeFactoryMap[extension.Factory]()
 	if err != nil {
 		return otelcol.Factories{}, err
 	}
@@ -62,8 +61,7 @@ func components() (otelcol.Factories, error) {
 	factories.ProcessorModules[batchprocessor.NewFactory().Type()] = "go.opentelemetry.io/collector/processor/batchprocessor v0.131.0"
 	factories.ProcessorModules[truthbeam.NewFactory().Type()] = "github.com/complytime/complybeacon/truthbeam v0.1.0"
 
-	factories.Connectors, err = otelcol.MakeFactoryMap[connector.Factory](
-	)
+	factories.Connectors, err = otelcol.MakeFactoryMap[connector.Factory]()
 	if err != nil {
 		return otelcol.Factories{}, err
 	}

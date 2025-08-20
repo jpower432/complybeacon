@@ -46,10 +46,10 @@ func (s *Service) PostV1Enrich(c *gin.Context) {
 
 // sendCompassError wraps sending of an error in the Error format, and
 // handling the failure to marshal that.
-func sendCompassError(c *gin.Context, code int, message string) {
+func sendCompassError(c *gin.Context, code int32, message string) {
 	compassErr := api.Error{
-		Code:    int32(code),
+		Code:    code,
 		Message: message,
 	}
-	c.JSON(code, compassErr)
+	c.JSON(int(code), compassErr)
 }
