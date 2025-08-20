@@ -27,7 +27,8 @@ func NewGinServer(service *compass.Service, port string) *http.Server {
 
 	// Use our validation middleware to check all requests against the
 	// OpenAPI schema.
-	// FIXME(jpower432): Investigate request schema validation middleware. Currently throwing a 400 will client generated code.
+	// FIXME(jpower432): Investigate request schema validation middleware.
+	// Currently throwing a 400 with client generated code.
 	//r.Use(middleware.OapiRequestValidator(swagger))
 
 	api.RegisterHandlers(r, service)

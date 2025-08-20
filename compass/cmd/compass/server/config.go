@@ -54,17 +54,21 @@ func NewTransformerSet(config *Config) (transformer.Set, error) {
 	pluginSet := make(transformer.Set)
 	for _, pluginConf := range config.Plugins {
 		transformerId := transformer.ID(pluginConf.Id)
-		fmt.Println(pluginConf.EvaluationsDir)
 		if pluginConf.EvaluationsDir == "" {
-			log.Printf("Plugin %s has not evaluations, skipping...", transformerId)
+			log.Printf("Plugin %s has no evaluations, skipping...", transformerId)
 			continue
 		}
 
-		if _, err := os.Stat(pluginConf.EvaluationsDir); err != nil {
+		info, err := os.Stat(pluginConf.EvaluationsDir)
+		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				return pluginSet, fmt.Errorf("evaluations directory %s for plugin %s: %w", pluginConf.EvaluationsDir, pluginConf.Id, err)
 			}
 			return pluginSet, err
+		}
+
+		if !info.IsDir() {
+			return pluginSet, fmt.Errorf("evaluations directory %s for plugin %s is not a directory", pluginConf.EvaluationsDir, pluginConf.Id)
 		}
 
 		tfmr, err := NewTransformerFromDir(transformerId, pluginConf.EvaluationsDir)
