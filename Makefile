@@ -25,14 +25,10 @@ BIN_DIR := bin
 # The default target. Running 'make' with no arguments will execute this.
 all: test build
 
-# Phony targets don't correspond to actual files, so 'make' always runs them.
-.PHONY: all test build clean help
-
 # ------------------------------------------------------------------------------
 # Test Target
-# Runs unit tests for every module in the monorepo.
 # ------------------------------------------------------------------------------
-test:
+test: ## Runs unit tests for every module in the monorepo.
 	@for m in $(MODULES); do \
 		(cd $$m && go test -v ./...); \
 		if [ $$? -ne 0 ]; then \
@@ -41,13 +37,13 @@ test:
 		fi; \
 	done
 	@echo "--- All tests passed! ---"
+.PHONY: test
 
 # ------------------------------------------------------------------------------
 # Build Target
-# Builds a binary for each module and places it in the $(BIN_DIR) directory.
 # This assumes the main package is in a subdirectory named 'cmd/'.
 # ------------------------------------------------------------------------------
-build:
+build: ## Builds a binary for each module and places it in the $(BIN_DIR) directory.
 	@mkdir -p $(BIN_DIR)
 	@for m in $(MODULES); do \
     		(cd $$m && go build -v -o ../$(BIN_DIR)/ ./cmd/... ); \
@@ -57,27 +53,28 @@ build:
     		fi; \
     done
 	@echo "--- All binaries built successfully ---"
+.PHONY: build
 
-# ------------------------------------------------------------------------------
-# Clean Target
-# Removes all generated binaries and Go build caches.
-# ------------------------------------------------------------------------------
-clean:
+
+clean: ## Removes all generated binaries and Go build caches.
 	@echo "--- Cleaning up build artifacts ---"
 	@rm -rf $(BIN_DIR)
 	@go clean -modcache
 	@echo "--- Cleanup complete ---"
+.PHONY: clean
 
 #------------------------------------------------------------------------------
 # Demo
 #------------------------------------------------------------------------------
 
-deploy:
+deploy: ## Deploy infra
 	podman-compose -f compose.yaml up
+.PHONY: deploy
 
 # ------------------------------------------------------------------------------
 # Help Target
 # Prints a friendly help message.
 # ------------------------------------------------------------------------------
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+help: ## Display this help screen
+	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+.PHONY: help
