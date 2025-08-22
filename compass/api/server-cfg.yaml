@@ -1,5 +1,7 @@
 package: api
 generate:
-  gin-server: true
+  chi-server: true
   embedded-spec: true
+compatibility:
+  apply-chi-middleware-first-to-last: true
 output: server.gen.go

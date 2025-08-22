@@ -1,14 +1,16 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 
 	"github.com/complytime/complybeacon/compass/api"
 	"github.com/complytime/complybeacon/compass/transformer"
 	"github.com/complytime/complybeacon/compass/transformer/plugins/basic"
 )
+
+var _ api.ServerInterface = (*Service)(nil)
 
 // Service struct to hold dependencies if needed
 type Service struct {
@@ -25,12 +27,10 @@ func NewService(transformers transformer.Set, scope Scope) *Service {
 }
 
 // PostV1Enrich handles the POST /v1/enrich endpoint.
-// It's a handler function for Gin.
-func (s *Service) PostV1Enrich(c *gin.Context) {
+func (s *Service) PostV1Enrich(w http.ResponseWriter, r *http.Request) {
 	var req api.EnrichmentRequest
-	err := c.Bind(&req)
-	if err != nil {
-		sendCompassError(c, http.StatusBadRequest, "Invalid format for enrichment")
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.clientError(w, http.StatusBadRequest, "Invalid format for enrichment")
 		return
 	}
 
@@ -41,15 +41,27 @@ func (s *Service) PostV1Enrich(c *gin.Context) {
 	}
 	enrichedResponse := Enrich(req.Evidence, transformationPlugin, s.scope)
 
-	c.JSON(http.StatusOK, enrichedResponse)
+	s.writeResponse(w, enrichedResponse, http.StatusOK)
 }
 
-// sendCompassError wraps sending of an error in the Error format, and
-// handling the failure to marshal that.
-func sendCompassError(c *gin.Context, code int32, message string) {
-	compassErr := api.Error{
-		Code:    code,
-		Message: message,
+// ClientError logs error based on its status code and returns the status code in the response.
+func (s *Service) clientError(w http.ResponseWriter, status int, message string) {
+	http.Error(w, message, status)
+	return
+}
+
+// ServerError logs the error and a stack trace, and returns a StatusInternalServerError in the response.
+func (s *Service) serverError(w http.ResponseWriter, message string) {
+	http.Error(w, message, http.StatusInternalServerError)
+	return
+}
+
+func (s *Service) writeResponse(w http.ResponseWriter, resp api.EnrichmentResponse, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		s.serverError(w, fmt.Sprintf("failed to write to response: %w", err))
+		return
 	}
-	c.JSON(int(code), compassErr)
 }
