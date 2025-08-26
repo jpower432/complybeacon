@@ -61,4 +61,4 @@ make build
 curl -X POST http://localhost:8083/v1/push -H "Content-Type: application/json" -d @hack/sampledata/evidence.json
 ```
 
-For additional on the full design (planned) see [`DESIGN.md`](./docs/DESIGN.md)
+For additional details on the full design (planned) see [`DESIGN.md`](./docs/DESIGN.md)
