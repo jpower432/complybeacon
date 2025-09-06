@@ -54,6 +54,12 @@ components:
         id:
           type: string
           description: Unique identifier for the raw evidence.
+        class_id:
+          type: integer
+          description: A event class id for raw data OCSF schema
+        category_id:
+          type: integer
+          description: A category ID for raw data OCSF schema
         timestamp:
           type: string
           format: date-time

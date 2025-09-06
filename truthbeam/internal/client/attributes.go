@@ -35,25 +35,29 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 		return fmt.Errorf("missing attribute 'policy.source'")
 	}
 
-	var detailsJSON []byte
-	logBody := logRecord.Body()
-	switch typ := logBody.Type(); typ {
-	case pcommon.ValueTypeBytes:
-		detailsJSON = logBody.Bytes().AsRaw()
-	case pcommon.ValueTypeStr:
-		detailsJSON = []byte(logBody.AsString())
-	default:
-		return fmt.Errorf("expected log body to be of type bytes or string for JSON")
+	// Default base event data
+	categoryIDVal, ok := attrs.Get("category.id")
+	if !ok {
+		categoryIDVal = pcommon.NewValueInt(0)
 	}
+
+	classIDVal, ok := attrs.Get("class.id")
+	if !ok {
+		classIDVal = pcommon.NewValueInt(0)
+	}
+
+	categoryId := int(categoryIDVal.Int())
+	classId := int(classIDVal.Int())
 
 	enrichReq := EnrichmentRequest{
 		Evidence: RawEvidence{
-			Id:        evidenceIDVal.Str(),
-			Timestamp: logRecord.Timestamp().AsTime(),
-			Source:    policySourceVal.Str(),
-			PolicyId:  policyIDVal.Str(),
-			Decision:  policyDecisionVal.Str(),
-			RawData:   json.RawMessage(detailsJSON),
+			Id:         evidenceIDVal.Str(),
+			Timestamp:  logRecord.Timestamp().AsTime(),
+			CategoryId: &categoryId,
+			ClassId:    &classId,
+			Source:     policySourceVal.Str(),
+			PolicyId:   policyIDVal.Str(),
+			Decision:   policyDecisionVal.Str(),
 		},
 	}
 

@@ -63,6 +63,12 @@ type Error struct {
 
 // RawEvidence defines model for RawEvidence.
 type RawEvidence struct {
+	// CategoryId A category ID for raw data OCSF schema
+	CategoryId *int `json:"category_id,omitempty"`
+
+	// ClassId A event class id for raw data OCSF schema
+	ClassId *int `json:"class_id,omitempty"`
+
 	// Decision The decision made by the policy engine (e.g., "compliant", "non-compliant").
 	Decision string `json:"decision"`
 
