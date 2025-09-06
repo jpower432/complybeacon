@@ -35,21 +35,16 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 		return fmt.Errorf("missing attribute 'policy.source'")
 	}
 
-	subjectNameVal, ok := attrs.Get("subject.name")
-	if !ok {
-		subjectNameVal = pcommon.NewValueStr("unknown")
-	}
-
-	subjectNameURI, ok := attrs.Get("subject.uri")
-	if !ok {
-		subjectNameURI = pcommon.NewValueStr("unknown")
-	}
-
+	var detailsJSON []byte
 	logBody := logRecord.Body()
-	if logBody.Type() != pcommon.ValueTypeBytes {
-		return fmt.Errorf("expected log body to be of type Bytes for JSON")
+	switch typ := logBody.Type(); typ {
+	case pcommon.ValueTypeBytes:
+		detailsJSON = logBody.Bytes().AsRaw()
+	case pcommon.ValueTypeStr:
+		detailsJSON = []byte(logBody.AsString())
+	default:
+		return fmt.Errorf("expected log body to be of type bytes or string for JSON")
 	}
-	detailsJSON := logBody.Bytes().AsRaw()
 
 	enrichReq := EnrichmentRequest{
 		Evidence: RawEvidence{
@@ -58,11 +53,7 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 			Source:    policySourceVal.Str(),
 			PolicyId:  policyIDVal.Str(),
 			Decision:  policyDecisionVal.Str(),
-			Details:   json.RawMessage(detailsJSON),
-			Resource: Resource{
-				Name: subjectNameVal.Str(),
-				Uri:  subjectNameURI.Str(),
-			},
+			RawData:   json.RawMessage(detailsJSON),
 		},
 	}
 
@@ -71,13 +62,13 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 		return err
 	}
 
-	attrs.PutStr("compliance.result", string(enrichRes.Result))
+	attrs.PutStr("compliance.result", string(enrichRes.Status.Title))
 	baselines := attrs.PutEmptySlice("compliance.baselines")
 	requirements := attrs.PutEmptySlice("compliance.requirements")
 
-	for _, impacted := range enrichRes.ImpactedBaselines {
+	for _, impacted := range enrichRes.Compliance {
 		newVal := baselines.AppendEmpty()
-		newVal.SetStr(impacted.Id)
+		newVal.SetStr(impacted.Benchmark)
 		for _, req := range impacted.Requirements {
 			newReq := requirements.AppendEmpty()
 			newReq.SetStr(req)
