@@ -5,50 +5,81 @@ import (
 	"encoding/json"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
 )
 
-type InstrumentationFn func(ctx context.Context, evidence RawEvidence) error
+type InstrumentationFn func(ctx context.Context, event Evidence) error
 
 func NewEmitter(observer *EvidenceObserver) InstrumentationFn {
-	return func(ctx context.Context, evidence RawEvidence) error {
-		evidenceEvent, err := LogEvidence(ctx, evidence)
+	return func(ctx context.Context, event Evidence) error {
+		attrs, err := LogEvidence(ctx, event)
 		if err != nil {
 			return err
 		}
-		attrs := ToAttributes(evidenceEvent)
 		observer.Processed(ctx, attrs...)
 		return nil
 	}
 }
 
 // LogEvidence logs the event to the global logger
-func LogEvidence(ctx context.Context, rawEnv RawEvidence) (EvidenceEvent, error) {
+func LogEvidence(ctx context.Context, event Evidence) ([]attribute.KeyValue, error) {
 	logger := global.Logger("proofwatch")
-	event := NewFromEvidence(rawEnv)
 	record := log.Record{}
-	record.SetEventName(event.Summary)
-	record.SetTimestamp(event.Timestamp)
+
+	eventId, attrs := ToAttributes(event)
+	record.SetEventName(eventId)
+	timestamp := time.UnixMilli(event.Time)
+	record.SetTimestamp(timestamp)
 	record.SetObservedTimestamp(time.Now())
 
-	// Adding metadata as attributes and full log details as the body
-	record.AddAttributes(
-		log.String("policy.source", rawEnv.Source),
-		log.String("subject.name", rawEnv.Subject.Name),
-		log.String("evidence.id", rawEnv.ID),
-		log.String("policy.decision", rawEnv.Decision),
-		log.String("policy.id", rawEnv.PolicyID),
-		log.String("subject,uri", rawEnv.Subject.URI),
-	)
-
-	jsonData, err := json.Marshal(rawEnv.Details)
-	if err != nil {
-		return event, err
+	var logAttrs []log.KeyValue
+	for _, attr := range attrs {
+		logAttrs = append(logAttrs, log.KeyValueFromAttribute(attr))
 	}
-	claimValue := log.BytesValue(jsonData)
-	record.SetBody(claimValue)
+	record.AddAttributes(logAttrs...)
+
+	jsonData, err := json.Marshal(event)
+	if err != nil {
+		return attrs, err
+	}
+	findingData := log.BytesValue(jsonData)
+	record.SetBody(findingData)
 
 	logger.Emit(ctx, record)
-	return event, nil
+	return attrs, nil
+}
+
+func ToAttributes(event Evidence) (string, []attribute.KeyValue) {
+	var defaultValue = "unknown"
+	policySource := defaultValue
+	evidenceId := defaultValue
+	policyDecision := defaultValue
+	policyId := defaultValue
+
+	if event.Metadata.Product.Name != nil {
+		policySource = *event.Metadata.Product.Name
+	}
+
+	if event.Metadata.Uid != nil {
+		evidenceId = *event.Metadata.Uid
+	}
+
+	if event.Policy.Uid != nil {
+		policyId = *event.Policy.Uid
+	}
+
+	if event.Status != nil {
+		policyDecision = *event.Status
+	}
+
+	return evidenceId, []attribute.KeyValue{
+		attribute.Int("category.id", int(event.CategoryUid)),
+		attribute.Int("class.id", int(event.ClassUid)),
+		attribute.String("policy.source", policySource),
+		attribute.String("policy.id", policyId),
+		attribute.String("policy.decision", policyDecision),
+		attribute.String("evidence.id", evidenceId),
+	}
 }

@@ -1,46 +1,17 @@
 package evidence
 
-import (
-	"encoding/json"
-	"time"
+import ocsf "github.com/Santiago-Labs/go-ocsf/ocsf/v1_5_0"
 
-	"github.com/in-toto/go-witness/cryptoutil"
-)
+// TODO: Look into how to and when to apply the security controls profile. The application of that specific
+// profile should be done by the `compass` service with data from `gemara` authored catalogs and profiles to perform correlation to
+// controls and mapped threat data.
 
-// EvidenceEvent represents a higher-level, mapped conformance assertion.
-type EvidenceEvent struct {
-	Summary   string      `json:"summary"`
-	Timestamp time.Time   `json:"timestamp"`
-	Evidence  RawEvidence `json:"evidence"`
-}
+// OCSF-based evidence structured, with some security control profile fields
 
-func NewFromEvidence(rawEnv RawEvidence) EvidenceEvent {
-	event := EvidenceEvent{
-		Timestamp: time.Now(),
-		Evidence:  rawEnv,
-	}
-	return event
-}
-
-// RawEvidence represents a simplified raw output from a policy engine.
-type RawEvidence struct {
-	Metadata `json:",inline"`
-	Details  []Resource `json:"details"`
-}
-
-type Metadata struct {
-	ID        string    `json:"id"`
-	Collected time.Time `json:"collected"`
-	Source    string    `json:"source"`
-	PolicyID  string    `json:"policyId"`
-	Decision  string    `json:"decision"`
-	Subject   Resource  `json:"subject"`
-}
-
-type Resource struct {
-	Name      string               `json:"name"`
-	URI       string               `json:"uri"`
-	Content   json.RawMessage      `json:"content"`
-	Digest    cryptoutil.DigestSet `json:"digest"`
-	MediaType string               `json:"mediaType"`
+type Evidence struct {
+	ocsf.ScanActivity `json:",inline"`
+	// From the security-control profile
+	Policy   ocsf.Policy `json:"policy" parquet:"policy"`
+	Action   *string     `json:"action,omitempty" parquet:"action,optional"`
+	ActionID *int32      `json:"action_id,omitempty" parquet:"action_id,optional"`
 }

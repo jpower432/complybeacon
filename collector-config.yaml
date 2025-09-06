@@ -1,16 +1,39 @@
 receivers:
+  webhookevent:
+    endpoint: localhost:8088
+    read_timeout: "500ms"
+    path: "/eventsource/receiver"
+    health_path: "/eventreceiver/healthcheck"
+    split_logs_at_newline: false
+
   otlp:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+
 processors:
   batch:
   truthbeam:
     endpoint: "http://compass:8081"
     tls:
       insecure: true
+
+  # For logs that are received from or something similar filelog instead of OTLP.
+  # These are expected to be in OCSF format before entering the pipeline.
+  transform/ocsf:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - merge_maps(log.cache, ParseJSON(log.body), "upsert") where IsMatch(log.body, "^\\{")
+          - set(log.attributes["evidence.id"], log.cache["body"]["metadata"]["uid"])
+          - set(log.attributes["policy.id"], log.cache["body"]["policy"]["uid"])
+          - set(log.attributes["policy.decision"], log.cache["body"]["status"])
+          - set(log.attributes["category.id"], log.cache["body"]["category_uid"])
+          - set(log.attributes["class.id"], log.cache["body"]["class_uid"])
+
 
 exporters:
   debug:
@@ -31,6 +54,6 @@ service:
       processors: [ batch ]
       exporters: [ debug ]
     logs:
-      receivers: [otlp]
-      processors: [batch, truthbeam]
+      receivers: [webhookevent, otlp]
+      processors: [batch, transform/ocsf, truthbeam]
       exporters: [debug, otlphttp/logs]
