@@ -88,8 +88,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/jonboulle/clockwork v0.5.0 h1:Hyh9A8u51kptdkR+cqRpT1EebBwTn1oK9YfGYbdFz6I=
 github.com/jonboulle/clockwork v0.5.0/go.mod h1:3mZlmanh0g2NDKO5TWZVJAfofYk64M7XN3SzBPjZF60=
-github.com/jpower432/complybeacon/truthbeam v0.0.0-20250906183021-9a8bb1a4249c h1:a4gU30c5VugwxEjcT6xGTNyBclPfIEAK7KfFzQD3Ddc=
-github.com/jpower432/complybeacon/truthbeam v0.0.0-20250906183021-9a8bb1a4249c/go.mod h1:cplxuxbmOYPFW03TIMBEFzW0RyoKvFPrciqjrKMVFpw=
+github.com/jpower432/complybeacon/truthbeam v0.0.0-20250906203048-5b4ebf676147 h1:CuRnfc1tm5IWv9oqlxmlfccYnz6T+lqoG0cRe1zCevM=
+github.com/jpower432/complybeacon/truthbeam v0.0.0-20250906203048-5b4ebf676147/go.mod h1:cplxuxbmOYPFW03TIMBEFzW0RyoKvFPrciqjrKMVFpw=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
