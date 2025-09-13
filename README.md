@@ -16,7 +16,7 @@ It takes output from policy scanners and transforms it into a structured OpenTel
 ProofWatch adds custom attributes to this log record to represent the evidence in a way that is meaningful to the downstream components.
 For an in-collector normalization strategy, collector config mappings using the `transform` processor are available under `beacon-distro`.
 
-> Attributes are defined [here](./docs/ATTRIBUTES.md)
+> Attributes are defined [here](./conventions/registry_manifest.yml)
 
 ### Beacon:
 

@@ -1,0 +1,141 @@
+name: beacon
+description: This registry contains the semantic conventions for the Beacon distro.
+semconv_version: 0.1.0
+schema_base_url: https://complybeacon.com/schemas/ # field not used
+dependencies:
+  - name: otel
+    registry_path: https://github.com/open-telemetry/semantic-conventions/archive/refs/tags/v1.37.0.zip[model]
+
+groups:
+  - id: registry.evidence
+    type: attribute_group
+    display_name: Policy and Compliance Evidence Attributes
+    brief: >
+      This group describes attributes specific to compliance and compliance logs.
+      Attributes are inspired by ECS field and OCSF
+    attributes:
+      - id: evidence.policy.id
+        type: string
+        stability: development
+        brief: >
+          The identifier for the policy that was applied.
+        examples:
+          ["my_policy_id"]
+      - id: evidence.policy.outcome
+        type: string
+        stability: development
+        brief: >
+          The outcome of the policy evaluation (e.g., "deny", "allow").
+        examples: ["pass", "fail", "deny"]
+      - id: evidence.id
+        type: string
+        stability: development
+        brief: >
+          A unique identifier for the evidence.
+        examples:
+          ["123456abc"]
+      - id: evidence.policy.source.id
+        type: string
+        stability: development
+        brief: >
+          The identifier for the source of the policy.
+        note:
+          This should identify the policy engine or assessment tool.
+        examples:
+          [
+            "conforma",
+            "opa-gatekeeper",
+            "kyverno"
+          ]
+      - id: evidence.category.id
+        type: int
+        stability: development
+        brief: >
+          A unique identifier for the event's category, providing a high-level grouping.
+        examples: ["6"]
+      - id: evidence.class.id
+        type: int
+        stability: development
+        brief: >
+          A unique identifier for the event's class, providing a more granular event type.
+        examples:
+          ["6007"]
+      - id: evidence.compliance.status
+        type: string
+        stability: development
+        brief: >
+          The normalized status identifier of the compliance check.
+        examples:
+          [
+            "Unknown",
+            "Pass",
+            "Warning",
+            "Fail",
+            "Other",
+          ]
+      - id: evidence.compliance.control.id
+        type: string
+        stability: development
+        brief: >
+          The unique identifier for the security control.
+        note: |
+          A control is a prescriptive, actionable set of 
+          specifications that strengthens security and compliance posture. This value may also reference
+          a specific control part.
+        examples:
+          ["OSPS-QA-07.01"]
+      - id: evidence.compliance.catalog.id
+        type: string
+        stability: development
+        brief: >
+          The unique identifier for the security control catalog.
+        examples:
+          [
+            "OSPS-B",
+            "CCC",
+          ]
+      - id: evidence.compliance.requirements
+        type: string[]
+        stability: development
+        brief: >
+          The identifiers specific compliance requirements being evaluated.
+        examples:
+          [
+            "AC-1",
+            "PS-1",
+            "2.1",
+          ]
+      - id: evidence.compliance.standards
+        type: string[]
+        stability: development
+        brief: >
+          The identifiers for regulatory or industry standards being evaluated for compliance.
+        examples:
+          [
+            "800-53",
+            "SSDF",
+            "CRA",
+          ]
+      - id: evidence.compliance.category
+        type: string
+        stability: development
+        brief: >
+          The category a control framework pertains.
+        examples:
+          [
+            "Access Control",
+            "Quality",
+          ]
+      - id: evidence.remediation.description
+        type: string
+        stability: development
+        brief: >
+          The description of the remediation strategy.
+        examples:
+          [
+            "This is a short description of the remediation strategy for this control.",
+          ]
+
+imports:
+  events:
+    - log.*
