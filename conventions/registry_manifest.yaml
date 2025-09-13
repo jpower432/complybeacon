@@ -7,60 +7,85 @@ dependencies:
     registry_path: https://github.com/open-telemetry/semantic-conventions/archive/refs/tags/v1.37.0.zip[model]
 
 groups:
-  - id: registry.evidence
+  - id: registry.policy
     type: attribute_group
     display_name: Policy and Compliance Evidence Attributes
     brief: >
-      This group describes attributes specific to compliance and compliance logs.
-      Attributes are inspired by ECS field and OCSF
+      This group describes attributes specific to policy decision logs. This attributes are inspired
+      by the OCSF Policy object.
     attributes:
-      - id: evidence.policy.id
+      - id: policy.id
         type: string
         stability: development
         brief: >
           The identifier for the policy that was applied.
+        requirement_level: required
+      - id: policy.name
+        type: string
+        stability: development
+        brief: >
+         The human-readable name of the policy
+        requirement_level: recommend
+      - id: policy.source
+        type: string
+        stability: development
+        brief: >
+          The identifier for the source of the policy audit log.
+        note:
+          This should identify the policy engine or assessment tool.
         examples:
-          ["my_policy_id"]
-      - id: evidence.policy.outcome
+          ["conforma", "opa-gatekeeper", "kyverno"]
+        requirement_level: required
+      - id: policy.evaluation.status
         type: string
         stability: development
         brief: >
           The outcome of the policy evaluation (e.g., "deny", "allow").
-        examples: ["pass", "fail", "deny"]
-      - id: evidence.id
+        examples: [ "pass", "fail", "error" ]
+        requirement_level: recommended
+        note: |
+          This is required if the policy enforcement action is "audit.
+      - id: policy.status.detail
         type: string
         stability: development
         brief: >
-          A unique identifier for the evidence.
-        examples:
-          ["123456abc"]
-      - id: evidence.policy.source.id
+          Add contextual details around the policy status.
+        requirement_level: optional
+      - id: policy.evaluation.subject.type
         type: string
         stability: development
         brief: >
-          The identifier for the source of the policy.
-        note:
-          This should identify the policy engine or assessment tool.
-        examples:
-          [
-            "conforma",
-            "opa-gatekeeper",
-            "kyverno"
-          ]
-      - id: evidence.category.id
-        type: int
+          The outcome of the policy evaluation (e.g., "deny", "allow").
+        requirement_level: recommended
+      - id: policy.evaluation.subject.id
+        type: string
         stability: development
         brief: >
-          A unique identifier for the event's category, providing a high-level grouping.
-        examples: ["6"]
-      - id: evidence.class.id
-        type: int
+          The outcome of the policy evaluation (e.g., "deny", "allow").
+        requirement_level: recommended
+      - id: policy.enforcement.status
+        type: string
         stability: development
         brief: >
-          A unique identifier for the event's class, providing a more granular event type.
-        examples:
-          ["6007"]
-      - id: evidence.compliance.status
+          The outcome of the policy enforcement.
+        examples: [ "success", "fail", "error" ]
+        note: |
+          This is required if the policy enforcement action is NOT "audit.
+      - id: policy.enforcement.action
+        type: string
+        stability: development
+        brief: >
+          The action take by the policy enforcement
+        examples: [ "block", "mutate", "audit" ]
+        requirement_level: required
+  - id: registry.compliance
+    type: attribute_group
+    display_name: Compliance Evidence Attributes
+    brief: >
+      This group describes attributes specific compliance audit logs. The attributes are inspired by
+      the OCSF Compliance Finding object.
+    attributes:
+      - id: compliance.status
         type: string
         stability: development
         brief: >
@@ -73,7 +98,18 @@ groups:
             "Fail",
             "Other",
           ]
-      - id: evidence.compliance.control.id
+        requirement_level: required
+      - id: compliance.audit.id
+        type: string
+        stability: development
+        brief: >
+          A unique identifier for a specific audit or assessment.
+        examples:
+          ["my_audit_id"]
+        note: |
+          This aligns with a id field of a `gemara` Evaluation or Enforcement Plan.
+        requirement_level: recommended
+      - id: compliance.control.id
         type: string
         stability: development
         brief: >
@@ -83,8 +119,19 @@ groups:
           specifications that strengthens security and compliance posture. This value may also reference
           a specific control part.
         examples:
-          ["OSPS-QA-07.01"]
-      - id: evidence.compliance.catalog.id
+          [ "OSPS-QA-07.01" ]
+        requirement_level: required
+      - id: compliance.control.remediation.description
+        type: string
+        stability: development
+        brief: >
+          The description of the remediation strategy.
+        examples:
+          [
+            "This is a short description of the remediation strategy for this control.",
+          ]
+        requirement_level: optional
+      - id: compliance.control.catalog.id
         type: string
         stability: development
         brief: >
@@ -94,7 +141,8 @@ groups:
             "OSPS-B",
             "CCC",
           ]
-      - id: evidence.compliance.requirements
+        requirement_level: required
+      - id: compliance.requirements
         type: string[]
         stability: development
         brief: >
@@ -105,7 +153,8 @@ groups:
             "PS-1",
             "2.1",
           ]
-      - id: evidence.compliance.standards
+        requirement_level: optional
+      - id: compliance.standards
         type: string[]
         stability: development
         brief: >
@@ -116,7 +165,8 @@ groups:
             "SSDF",
             "CRA",
           ]
-      - id: evidence.compliance.category
+        requirement_level: optional
+      - id: compliance.category
         type: string
         stability: development
         brief: >
@@ -126,15 +176,22 @@ groups:
             "Access Control",
             "Quality",
           ]
-      - id: evidence.remediation.description
+        requirement_level: recommended
+      - id: compliance.risk.level
         type: string
         stability: development
         brief: >
-          The description of the remediation strategy.
+          The risk level associated with non-compliance.
         examples:
           [
-            "This is a short description of the remediation strategy for this control.",
+            "info",
+            "low",
+            "high",
+            "medium",
+            "critical",
+            "other"
           ]
+        requirement_level: optional
 
 imports:
   events:
