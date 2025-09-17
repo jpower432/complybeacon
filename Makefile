@@ -76,6 +76,15 @@ deploy: ## Deploy infra
 	podman-compose -f compose.yaml up
 .PHONY: deploy
 
+#------------------------------------------------------------------------------
+# Generate docs
+#------------------------------------------------------------------------------
+
+weaver-codegen: ## Generate docs
+	weaver registry generate -r model --templates "https://github.com/open-telemetry/semantic-conventions/archive/refs/tags/v1.34.0.zip[templates]" markdown docs
+.PHONY: deploy
+
+
 # ------------------------------------------------------------------------------
 # Help Target
 # Prints a friendly help message.
