@@ -96,6 +96,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace (
-	github.com/complytime/complybeacon/proofwatch => ../proofwatch
-)
+replace github.com/complytime/complybeacon/proofwatch => github.com/jpower432/complybeacon/proofwatch v0.0.0-20250920215219-f21983109e03
