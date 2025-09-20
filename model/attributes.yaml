@@ -4,7 +4,7 @@ groups:
     display_name: Policy and Compliance Evidence Attributes
     brief: >
       This group describes attributes specific to policy decision logs. This attributes are inspired
-      by the OCSF Policy object.
+      by the OCSF Policy object and the `gemara` model.
     attributes:
       - id: policy.id
         type: string
@@ -12,14 +12,14 @@ groups:
         brief: >
           The identifier for the policy that was applied.
         requirement_level: required
-        examples: ["123-abc-456-def"]
+        examples: ["branch-protection-123"]
       - id: policy.name
         type: string
         stability: development
         brief: >
           The human-readable name of the policy
         requirement_level: recommended
-        examples: ["PCI DSS Compliance Policy"]
+        examples: ["S3 Bucket Check"]
       - id: policy.source
         type: string
         stability: development
@@ -36,9 +36,7 @@ groups:
         brief: >
           The outcome of the policy evaluation (e.g., "deny", "allow").
         examples: [ "pass", "fail", "error" ]
-        requirement_level: recommended
-        note: |
-          This is required if the policy enforcement action is "audit.
+        requirement_level: required
       - id: policy.status.detail
         type: string
         stability: development
@@ -50,14 +48,14 @@ groups:
         type: string
         stability: development
         brief: >
-          The outcome of the policy evaluation (e.g., "deny", "allow").
+          The subject type or resource the policy was applied to.
         requirement_level: recommended
         examples: ["k8s.pod", "k8s.service", "gcp.compute.instance"]
       - id: policy.evaluation.subject.id
         type: string
         stability: development
         brief: >
-          The outcome of the policy evaluation (e.g., "deny", "allow").
+          The subject id or resource the policy was applied to.
         requirement_level: recommended
         examples: ["user-service-7b5f9c6d8-xyz"]
       - id: policy.enforcement.status
@@ -67,12 +65,12 @@ groups:
           The outcome of the policy enforcement.
         examples: [ "success", "fail", "error" ]
         note: |
-          This is required if the policy enforcement action is NOT "audit.
+          This is required if the policy enforcement action is not "audit".
       - id: policy.enforcement.action
         type: string
         stability: development
         brief: >
-          The action take by the policy enforcement
+          The action take by the policy enforcement.
         examples: [ "block", "mutate", "audit" ]
         requirement_level: required
   - id: registry.compliance

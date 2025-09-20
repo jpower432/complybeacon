@@ -50,5 +50,5 @@ service:
       exporters: [ debug ]
     logs:
       receivers: [ otlp ]
-      processors: [ transform/ocsf, truthbeam ]
+      processors: [ batch, transform/ocsf, truthbeam ]
       exporters: [ debug ]

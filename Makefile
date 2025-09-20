@@ -77,14 +77,33 @@ deploy: ## Deploy infra
 .PHONY: deploy
 
 #------------------------------------------------------------------------------
-# Generate docs
+# Generate
 #------------------------------------------------------------------------------
 
-weaver-codegen: ## Generate docs
+api-codegen: ## Runs go generate for all the modules
+	@for m in $(MODULES); do \
+		(cd $$m && go generate ./...); \
+		if [ $$? -ne 0 ]; then \
+			echo "Codegen failed for module: $$m"; \
+			exit 1; \
+		fi; \
+	done
+.PHONY: api-codegen
+
+#------------------------------------------------------------------------------
+# Weaver
+#------------------------------------------------------------------------------
+
+weaver-docsgen: ## Generate docs
 	weaver registry generate -r model --templates "https://github.com/open-telemetry/semantic-conventions/archive/refs/tags/v1.34.0.zip[templates]" markdown docs
-.PHONY: deploy
+.PHONY: weaver-docsgen
 
+weaver-codegen: ## Generate Go code
+	weaver registry generate -r model --templates templates go proofwatch
+.PHONY: weaver-codegen
 
+weaver-check: ## Model schema check
+	weaver registry check -r model
 # ------------------------------------------------------------------------------
 # Help Target
 # Prints a friendly help message.

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/complytime/complybeacon/proofwatch"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 )
@@ -15,49 +16,33 @@ import (
 func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pcommon.Resource, logRecord plog.LogRecord) error {
 	attrs := logRecord.Attributes()
 
-	evidenceIDVal, ok := attrs.Get("evidence.id")
+	// Retrieve lookup attributes
+	policyIDVal, ok := attrs.Get(proofwatch.POLICY_ID)
 	if !ok {
-		return fmt.Errorf("missing attribute 'evidence.id'")
+		return fmt.Errorf("missing required attribute 'policy.id'")
 	}
 
-	policyIDVal, ok := attrs.Get("policy.id")
+	policyAction, ok := attrs.Get(proofwatch.POLICY_ENFORCEMENT_ACTION)
 	if !ok {
-		return fmt.Errorf("missing attribute 'policy.id'")
+		return fmt.Errorf("missing required attribute 'policy.action'")
 	}
 
-	policyDecisionVal, ok := attrs.Get("policy.decision")
+	policySourceVal, ok := attrs.Get(proofwatch.POLICY_SOURCE)
 	if !ok {
-		return fmt.Errorf("missing attribute 'policy.decision'")
+		return fmt.Errorf("missing required attribute 'policy.source'")
 	}
 
-	policySourceVal, ok := attrs.Get("policy.source")
+	policyDecisionVal, ok := attrs.Get(proofwatch.POLICY_EVALUATION_STATUS)
 	if !ok {
-		return fmt.Errorf("missing attribute 'policy.source'")
+		return fmt.Errorf("missing required attributes 'policy.evaluation.status'")
 	}
-
-	// Default base event data
-	categoryIDVal, ok := attrs.Get("category.id")
-	if !ok {
-		categoryIDVal = pcommon.NewValueInt(0)
-	}
-
-	classIDVal, ok := attrs.Get("class.id")
-	if !ok {
-		classIDVal = pcommon.NewValueInt(0)
-	}
-
-	categoryId := int(categoryIDVal.Int())
-	classId := int(classIDVal.Int())
-
 	enrichReq := EnrichmentRequest{
-		Evidence: RawEvidence{
-			Id:         evidenceIDVal.Str(),
-			Timestamp:  logRecord.Timestamp().AsTime(),
-			CategoryId: &categoryId,
-			ClassId:    &classId,
-			Source:     policySourceVal.Str(),
-			PolicyId:   policyIDVal.Str(),
-			Decision:   policyDecisionVal.Str(),
+		Evidence: Evidence{
+			Timestamp: logRecord.Timestamp().AsTime(),
+			Source:    policySourceVal.Str(),
+			PolicyId:  policyIDVal.Str(),
+			Decision:  policyDecisionVal.Str(),
+			Action:    policyAction.Str(),
 		},
 	}
 
@@ -66,12 +51,12 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 		return err
 	}
 
-	attrs.PutStr("compliance.status", string(enrichRes.Status.Title))
-	attrs.PutStr("compliance.control", enrichRes.Compliance.Control)
-	attrs.PutStr("compliance.benchmark", enrichRes.Compliance.Benchmark)
-	attrs.PutStr("compliance.category", enrichRes.Compliance.Category)
-	requirements := attrs.PutEmptySlice("compliance.requirements")
-	standards := attrs.PutEmptySlice("compliance.standards")
+	attrs.PutStr(proofwatch.COMPLIANCE_STATUS, string(enrichRes.Status.Title))
+	attrs.PutStr(proofwatch.COMPLIANCE_CONTROL_ID, enrichRes.Compliance.Control)
+	attrs.PutStr(proofwatch.COMPLIANCE_CONTROL_CATALOG_ID, enrichRes.Compliance.Catalog)
+	attrs.PutStr(proofwatch.COMPLIANCE_CATEGORY, enrichRes.Compliance.Category)
+	requirements := attrs.PutEmptySlice(proofwatch.COMPLIANCE_REQUIREMENTS)
+	standards := attrs.PutEmptySlice(proofwatch.COMPLIANCE_STANDARDS)
 
 	if enrichRes.Compliance.Remediation != nil {
 		attrs.PutStr("remediation.desc", *enrichRes.Compliance.Remediation)
