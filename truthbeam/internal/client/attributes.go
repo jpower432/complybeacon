@@ -1,116 +1,72 @@
+// DO NOT EDIT, this is an auto-generated file
+
 package client
 
-import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
+// A unique identifier for a specific audit or assessment.
+//
+// Notes:
+// This aligns with a id field of a `gemara` Evaluation or Enforcement Plan
+const COMPLIANCE_AUDIT_ID = "compliance.audit.id"
 
-	"github.com/complytime/complybeacon/proofwatch"
-	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/plog"
-)
+// The category a control framework pertains
+const COMPLIANCE_CATEGORY = "compliance.category"
 
-// ApplyAttributes enriches attributes in the log record with compliance impact data.
-func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pcommon.Resource, logRecord plog.LogRecord) error {
-	attrs := logRecord.Attributes()
+// The unique identifier for the security control catalog
+const COMPLIANCE_CONTROL_CATALOG_ID = "compliance.control.catalog.id"
 
-	// Retrieve lookup attributes
-	policyIDVal, ok := attrs.Get(proofwatch.POLICY_ID)
-	if !ok {
-		return fmt.Errorf("missing required attribute 'policy.id'")
-	}
+// The unique identifier for the security control.
+//
+// Notes:
+// A control is a prescriptive, actionable set of
+// specifications that strengthens security and compliance posture. This value may also reference
+// a specific control part
+const COMPLIANCE_CONTROL_ID = "compliance.control.id"
 
-	policyAction, ok := attrs.Get(proofwatch.POLICY_ENFORCEMENT_ACTION)
-	if !ok {
-		return fmt.Errorf("missing required attribute 'policy.action'")
-	}
+// The description of the remediation strategy
+const COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION = "compliance.control.remediation.description"
 
-	policySourceVal, ok := attrs.Get(proofwatch.POLICY_SOURCE)
-	if !ok {
-		return fmt.Errorf("missing required attribute 'policy.source'")
-	}
+// The identifiers specific compliance requirements being evaluated
+const COMPLIANCE_REQUIREMENTS = "compliance.requirements"
 
-	policyDecisionVal, ok := attrs.Get(proofwatch.POLICY_EVALUATION_STATUS)
-	if !ok {
-		return fmt.Errorf("missing required attributes 'policy.evaluation.status'")
-	}
-	enrichReq := EnrichmentRequest{
-		Evidence: Evidence{
-			Timestamp: logRecord.Timestamp().AsTime(),
-			Source:    policySourceVal.Str(),
-			PolicyId:  policyIDVal.Str(),
-			Decision:  policyDecisionVal.Str(),
-			Action:    policyAction.Str(),
-		},
-	}
+// The risk level associated with non-compliance
+const COMPLIANCE_RISK_LEVEL = "compliance.risk.level"
 
-	enrichRes, err := callEnrichAPI(ctx, client, serverURL, enrichReq)
-	if err != nil {
-		return err
-	}
+// The identifiers for regulatory or industry standards being evaluated for compliance
+const COMPLIANCE_STANDARDS = "compliance.standards"
 
-	attrs.PutStr(proofwatch.COMPLIANCE_STATUS, string(enrichRes.Status.Title))
-	attrs.PutStr(proofwatch.COMPLIANCE_CONTROL_ID, enrichRes.Compliance.Control)
-	attrs.PutStr(proofwatch.COMPLIANCE_CONTROL_CATALOG_ID, enrichRes.Compliance.Catalog)
-	attrs.PutStr(proofwatch.COMPLIANCE_CATEGORY, enrichRes.Compliance.Category)
-	requirements := attrs.PutEmptySlice(proofwatch.COMPLIANCE_REQUIREMENTS)
-	standards := attrs.PutEmptySlice(proofwatch.COMPLIANCE_STANDARDS)
+// The normalized status identifier of the compliance check
+const COMPLIANCE_STATUS = "compliance.status"
 
-	if enrichRes.Compliance.Remediation != nil {
-		attrs.PutStr("remediation.desc", *enrichRes.Compliance.Remediation)
-	}
+// The action take by the policy enforcement
+const POLICY_ENFORCEMENT_ACTION = "policy.enforcement.action"
 
-	for _, req := range enrichRes.Compliance.Requirements {
-		newReq := requirements.AppendEmpty()
-		newReq.SetStr(req)
-	}
-	for _, std := range enrichRes.Compliance.Standards {
-		newStd := standards.AppendEmpty()
-		newStd.SetStr(std)
-	}
+// The outcome of the policy enforcement.
+//
+// Notes:
+// This is required if the policy enforcement action is not "audit"
+const POLICY_ENFORCEMENT_STATUS = "policy.enforcement.status"
 
-	return nil
-}
+// The outcome of the policy evaluation (e.g., "deny", "allow")
+const POLICY_EVALUATION_STATUS = "policy.evaluation.status"
 
-// callEnrichAPI is a helper function to perform the actual HTTP request.
-func callEnrichAPI(ctx context.Context, client *Client, serverURL string, req EnrichmentRequest) (*EnrichmentResponse, error) {
-	body, err := json.Marshal(req)
-	if err != nil {
-		return nil, err
-	}
+// The subject id or resource the policy was applied to
+const POLICY_EVALUATION_SUBJECT_ID = "policy.evaluation.subject.id"
 
-	// Create the HTTP request
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", serverURL+"/v1/enrich", bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
+// The subject type or resource the policy was applied to
+const POLICY_EVALUATION_SUBJECT_TYPE = "policy.evaluation.subject.type"
 
-	httpReq.Header.Set("Content-Type", "application/json")
+// The identifier for the policy that was applied
+const POLICY_ID = "policy.id"
 
-	// Perform the request
-	resp, err := client.Client.Do(httpReq)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+// The human-readable name of the policy
+const POLICY_NAME = "policy.name"
 
-	// Handle non-200 status codes
-	if resp.StatusCode != http.StatusOK {
-		var errRes Error
-		err := json.NewDecoder(resp.Body).Decode(&errRes)
-		if err != nil {
-			return nil, err
-		}
-		return nil, fmt.Errorf("API call failed with status %d: %v", resp.StatusCode, errRes.Message)
-	}
+// The identifier for the source of the policy audit log.
+//
+// Notes:
+// This should identify the policy engine or assessment tool
+const POLICY_SOURCE = "policy.source"
 
-	// Decode the successful response
-	var enrichRes EnrichmentResponse
-	if err := json.NewDecoder(resp.Body).Decode(&enrichRes); err != nil {
-		return nil, err
-	}
+// Add contextual details around the policy status
+const POLICY_STATUS_DETAIL = "policy.status.detail"
 
-	return &enrichRes, nil
-}

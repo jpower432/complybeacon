@@ -43,19 +43,16 @@ const POLICY_ENFORCEMENT_ACTION = "policy.enforcement.action"
 // The outcome of the policy enforcement.
 //
 // Notes:
-// This is required if the policy enforcement action is NOT "audit
+// This is required if the policy enforcement action is not "audit"
 const POLICY_ENFORCEMENT_STATUS = "policy.enforcement.status"
 
-// The outcome of the policy evaluation (e.g., "deny", "allow").
-//
-// Notes:
-// This is required if the policy enforcement action is "audit
+// The outcome of the policy evaluation (e.g., "deny", "allow")
 const POLICY_EVALUATION_STATUS = "policy.evaluation.status"
 
-// The outcome of the policy evaluation (e.g., "deny", "allow")
+// The subject id or resource the policy was applied to
 const POLICY_EVALUATION_SUBJECT_ID = "policy.evaluation.subject.id"
 
-// The outcome of the policy evaluation (e.g., "deny", "allow")
+// The subject type or resource the policy was applied to
 const POLICY_EVALUATION_SUBJECT_TYPE = "policy.evaluation.subject.type"
 
 // The identifier for the policy that was applied

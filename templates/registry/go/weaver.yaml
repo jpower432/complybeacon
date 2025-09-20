@@ -13,7 +13,7 @@ comment_formats:
 default_comment_format: go
 
 params:
-  package_name: "proofwatch"
+  package_name: ""
   excluded_attributes: []
 
 templates:

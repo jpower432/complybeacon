@@ -99,7 +99,8 @@ weaver-docsgen: ## Generate docs
 .PHONY: weaver-docsgen
 
 weaver-codegen: ## Generate Go code
-	weaver registry generate -r model --templates templates go proofwatch
+	weaver registry generate -r model --templates templates go --param package_name="proofwatch" proofwatch
+	weaver registry generate -r model --templates templates go --param package_name="client" truthbeam/internal/client
 .PHONY: weaver-codegen
 
 weaver-check: ## Model schema check

@@ -5,7 +5,6 @@ go 1.24.5
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 
 require (
-	github.com/complytime/complybeacon/proofwatch v0.0.0-20250917132753-626f97c88433
 	go.opentelemetry.io/collector/component v1.37.0
 	go.opentelemetry.io/collector/config/configcompression v1.37.0
 	go.opentelemetry.io/collector/config/confighttp v0.131.0
@@ -96,4 +95,3 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/complytime/complybeacon/proofwatch => github.com/jpower432/complybeacon/proofwatch v0.0.0-20250920215219-f21983109e03
