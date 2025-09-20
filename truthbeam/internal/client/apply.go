@@ -18,22 +18,22 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 	// Retrieve lookup attributes
 	policyIDVal, ok := attrs.Get(POLICY_ID)
 	if !ok {
-		return fmt.Errorf("missing required attribute 'policy.id'")
+		return fmt.Errorf("missing required attribute %q", POLICY_ID)
 	}
 
 	policyAction, ok := attrs.Get(POLICY_ENFORCEMENT_ACTION)
 	if !ok {
-		return fmt.Errorf("missing required attribute 'policy.action'")
+		return fmt.Errorf("missing required attribute %q", POLICY_EVALUATION_STATUS)
 	}
 
 	policySourceVal, ok := attrs.Get(POLICY_SOURCE)
 	if !ok {
-		return fmt.Errorf("missing required attribute 'policy.source'")
+		return fmt.Errorf("missing required attribute %q", POLICY_SOURCE)
 	}
 
 	policyDecisionVal, ok := attrs.Get(POLICY_EVALUATION_STATUS)
 	if !ok {
-		return fmt.Errorf("missing required attributes 'policy.evaluation.status'")
+		return fmt.Errorf("missing required attributes %q", POLICY_EVALUATION_STATUS)
 	}
 	enrichReq := EnrichmentRequest{
 		Evidence: Evidence{
