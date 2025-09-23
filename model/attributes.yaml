@@ -102,7 +102,8 @@ groups:
         examples:
           ["my_audit_id"]
         note: |
-          This aligns with a id field of a `gemara` Evaluation or Enforcement Plan.
+          This aligns with a id field of a `gemara` Evaluation or Enforcement Plan. The goal to allow batching
+          and correlation of a set of findings.
         requirement_level: recommended
       - id: compliance.control.id
         type: string

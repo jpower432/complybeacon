@@ -13,146 +13,129 @@ import (
 
 type ProofWatch struct {
 	name          string
-	provider      log.LoggerProvider
 	logger        log.Logger
 	observer      *EvidenceObserver
 	levelSeverity log.Severity
-	opts          []log.LoggerOption
 }
 
-func NewProofWatch(name string, meter metric.Meter, options ...log.LoggerOption) (*ProofWatch, error) {
-	provider := global.GetLoggerProvider()
+// NewProofWatch creates a new ProofWatch instance with OpenTelemetry logging.
+func NewProofWatch(name string, meter metric.Meter) (*ProofWatch, error) {
 	observer, err := NewEvidenceObserver(meter)
 	if err != nil {
 		return nil, err
 	}
 	return &ProofWatch{
-		name:          name,
-		provider:      provider,
-		logger:        provider.Logger("proofwatch"),
-		observer:      observer,
-		levelSeverity: log.SeverityInfo,
-		opts:          options,
+		name:     name,
+		logger:   global.GetLoggerProvider().Logger("proofwatch"),
+		observer: observer,
 	}, nil
 }
 
-func (w *ProofWatch) Log(ctx context.Context, event Evidence) error {
-	attrs, err := w.logEvidence(ctx, event)
+// Log logs a policy event using OpenTelemetry's log API.
+func (w *ProofWatch) Log(ctx context.Context, evidence Evidence) error {
+	attrs := MapOCSFToAttributes(evidence)
+
+	jsonData, err := json.Marshal(evidence)
 	if err != nil {
 		return err
 	}
+
+	record := log.Record{}
+	record.SetEventName("gemara.policy.evaluation")
+	record.SetObservedTimestamp(time.Now())
+	record.AddAttributes(ToLogKeyValues(attrs)...)
+	record.SetSeverity(w.levelSeverity)
+	record.SetBody(log.StringValue(string(jsonData))) // Retains the original body for flexibility.
+
+	w.logger.Emit(ctx, record)
+
 	w.observer.Processed(ctx, attrs...)
+
 	return nil
 }
 
-// LogEvidence logs the event to the global logger
-func (w *ProofWatch) logEvidence(ctx context.Context, event Evidence) ([]attribute.KeyValue, error) {
-	record := log.Record{}
-
-	eventId, attrs := ToAttributes(event)
-	record.SetEventName(eventId)
-	record.SetObservedTimestamp(time.Now())
-
-	var logAttrs []log.KeyValue
-	for _, attr := range attrs {
-		logAttrs = append(logAttrs, log.KeyValueFromAttribute(attr))
-	}
-	record.AddAttributes(logAttrs...)
-
-	jsonData, err := json.Marshal(event)
-	if err != nil {
-		return attrs, err
-	}
-	evidenceLogData := log.StringValue(string(jsonData))
-	record.SetBody(evidenceLogData)
-
-	w.logger.Emit(ctx, record)
-	return attrs, nil
-}
-
-func ToAttributes(event Evidence) (string, []attribute.KeyValue) {
-	var defaultValue = "unknown"
-	policySource := defaultValue
-	policyName := defaultValue
-	policyId := defaultValue
-	policyAction := defaultValue
-	policyDecision := defaultValue
-	policyOutcome := defaultValue
-
-	if event.Metadata.Product.Name != nil {
-		policySource = *event.Metadata.Product.Name
-	}
-
-	if event.Policy.Uid != nil {
-		policyId = *event.Policy.Uid
-	}
-
-	if event.Policy.Name != nil {
-		policyName = *event.Policy.Uid
-	}
-
-	if event.ActionID != nil {
-		policyAction = actionMap[*event.ActionID]
-		if *event.ActionID != 3 && event.DispositionID != nil {
-			policyOutcome = dispositionMap[*event.DispositionID]
-		}
-	}
-
-	if event.Status != nil {
-		policyDecision = *event.Status
-	}
-
+// MapOCSFToAttributes translates OCSF-based Evidence to Gemara-based attributes.
+func MapOCSFToAttributes(event Evidence) []attribute.KeyValue {
 	attrs := []attribute.KeyValue{
-		attribute.Int("category.id", int(event.CategoryUid)),
-		attribute.Int("class.id", int(event.ClassUid)),
-		attribute.String(POLICY_SOURCE, policySource),
-		attribute.String(POLICY_ID, policyId),
-		attribute.String(POLICY_NAME, policyName),
-		attribute.String(POLICY_ENFORCEMENT_ACTION, policyAction),
-		attribute.String(POLICY_EVALUATION_STATUS, policyDecision),
-		attribute.String(POLICY_ENFORCEMENT_STATUS, policyOutcome),
+		// OCSF Standard Attributes (for interoperability)
+		attribute.Int("category_uid", int(event.CategoryUid)),
+		attribute.Int("class_uid", int(event.ClassUid)),
+
+		attribute.String(POLICY_ID, stringVal(event.Policy.Uid, "unknown_policy_id")),
+		attribute.String(POLICY_NAME, stringVal(event.Policy.Name, "unknown_policy_name")),
+		attribute.String(POLICY_SOURCE, stringVal(event.Metadata.Product.Name, "unknown_source")),
+
+		attribute.String(POLICY_EVALUATION_STATUS, mapEvaluationStatus(event.Status)),
+		attribute.String(POLICY_STATUS_DETAIL, stringVal(event.Message, "")),
+
+		attribute.String(POLICY_ENFORCEMENT_ACTION, mapEnforcementAction(event.ActionID, event.DispositionID)),
+		attribute.String(POLICY_ENFORCEMENT_STATUS, mapEnforcementStatus(event.ActionID, event.DispositionID)),
 	}
 
-	return policyId, attrs
+	return attrs
 }
 
-var actionMap = map[int32]string{
-	0:  "Unknown",
-	1:  "Allowed",
-	2:  "Denied",
-	3:  "Observed",
-	4:  "Modified",
-	99: "Other",
+// ToLogKeyValues converts slice of attribute.KeyValue to log.KeyValue
+func ToLogKeyValues(attrs []attribute.KeyValue) []log.KeyValue {
+	logAttrs := make([]log.KeyValue, len(attrs))
+	for i, attr := range attrs {
+		logAttrs[i] = log.KeyValueFromAttribute(attr)
+	}
+	return logAttrs
 }
 
-var dispositionMap = map[int32]string{
-	0:  "Unknown",
-	1:  "Allowed",
-	2:  "Blocked",
-	3:  "Quarantined",
-	4:  "Isolated",
-	5:  "Deleted",
-	6:  "Dropped",
-	7:  "Custom Action",
-	8:  "Approved",
-	9:  "Restored",
-	10: "Exonerated",
-	11: "Corrected",
-	12: "Partially Corrected",
-	13: "Uncorrected",
-	14: "Delayed",
-	15: "Detected",
-	16: "No Action",
-	17: "Logged",
-	18: "Tagged",
-	19: "Alert",
-	20: "Count",
-	21: "Reset",
-	22: "Captcha",
-	23: "Challenge",
-	24: "Access Revoked",
-	25: "Rejected",
-	26: "Unauthorized",
-	27: "Error",
-	99: "Other",
+// stringVal safely dereferences a string pointer with a default value.
+func stringVal(s *string, defaultValue string) string {
+	if s != nil {
+		return *s
+	}
+	return defaultValue
+}
+
+// mapEvaluationStatus provides the core GRC logic for a pass/fail/error status.
+// This is custom logic based on the policy engine's output.
+func mapEvaluationStatus(status *string) string {
+	if status == nil {
+		return "error"
+	}
+	switch *status {
+	case "success":
+		return "pass"
+	case "failure":
+		return "fail"
+	default:
+		return "unknown"
+	}
+}
+
+// mapEnforcementAction provides the core GRC logic for block/mutate/audit.
+func mapEnforcementAction(actionID *int32, dispositionID *int32) string {
+	if actionID == nil {
+		return "audit" // Default to audit if no action is specified
+	}
+	switch *actionID {
+	case 2: // Denied (OCSF) -> Block
+		return "block"
+	case 4: // Modified (OCSF) -> Mutate
+		return "mutate"
+	case 3, 16, 17: // Observed, No Action, Logged (OCSF) -> Audit
+		return "audit"
+	default:
+		return "unknown"
+	}
+}
+
+// mapEnforcementStatus maps OCSF dispositions to a simple success/fail for GRC.
+func mapEnforcementStatus(actionID *int32, dispositionID *int32) string {
+	if actionID == nil {
+		return "success" // Audit/no action is a successful state
+	}
+	if *actionID == 2 && dispositionID != nil && (*dispositionID == 2 || *dispositionID == 6) { // Blocked, Dropped
+		return "success" // A successful block
+	}
+	if *actionID == 4 && dispositionID != nil && *dispositionID == 11 { // Corrected
+		return "success"
+	}
+	// Default to a fail or unknown for other cases
+	return "fail"
 }
