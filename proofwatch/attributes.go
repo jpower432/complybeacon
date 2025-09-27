@@ -5,7 +5,8 @@ package proofwatch
 // A unique identifier for a specific audit or assessment.
 //
 // Notes:
-// This aligns with a id field of a `gemara` Evaluation or Enforcement Plan
+// This aligns with a id field of a `gemara` Evaluation or Enforcement Plan. The goal to allow batching
+// and correlation of a set of findings
 const COMPLIANCE_AUDIT_ID = "compliance.audit.id"
 
 // The category a control framework pertains

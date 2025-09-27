@@ -41,7 +41,7 @@ func (w *ProofWatch) Log(ctx context.Context, evidence Evidence) error {
 	}
 
 	record := log.Record{}
-	record.SetEventName("gemara.policy.evaluation")
+	record.SetEventName("beacon.policy.log")
 	record.SetObservedTimestamp(time.Now())
 	record.AddAttributes(ToLogKeyValues(attrs)...)
 	record.SetSeverity(w.levelSeverity)

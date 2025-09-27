@@ -19,7 +19,8 @@ This group describes attributes specific compliance audit logs. The attributes a
 | <a id="compliance-standards" href="#compliance-standards">`compliance.standards`</a> | string[] | The identifiers for regulatory or industry standards being evaluated for compliance. | `["800-53", "SSDF", "CRA"]` | ![Development](https://img.shields.io/badge/-development-blue) |
 | <a id="compliance-status" href="#compliance-status">`compliance.status`</a> | string | The normalized status identifier of the compliance check. | `Unknown`; `Pass`; `Warning`; `Fail`; `Other` | ![Development](https://img.shields.io/badge/-development-blue) |
 
-**[1] `compliance.audit.id`:** This aligns with a id field of a `gemara` Evaluation or Enforcement Plan.
+**[1] `compliance.audit.id`:** This aligns with a id field of a `gemara` Evaluation or Enforcement Plan. The goal to allow batching
+and correlation of a set of findings.
 
 **[2] `compliance.control.id`:** A control is a prescriptive, actionable set of 
 specifications that strengthens security and compliance posture. This value may also reference
