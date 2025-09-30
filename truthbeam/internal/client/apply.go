@@ -23,7 +23,7 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 
 	policyAction, ok := attrs.Get(POLICY_ENFORCEMENT_ACTION)
 	if !ok {
-		return fmt.Errorf("missing required attribute %q", POLICY_EVALUATION_STATUS)
+		return fmt.Errorf("missing required attribute %q", POLICY_ENFORCEMENT_ACTION)
 	}
 
 	policySourceVal, ok := attrs.Get(POLICY_SOURCE)
@@ -58,7 +58,7 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 	standards := attrs.PutEmptySlice(COMPLIANCE_STANDARDS)
 
 	if enrichRes.Compliance.Remediation != nil {
-		attrs.PutStr("remediation.desc", *enrichRes.Compliance.Remediation)
+		attrs.PutStr(COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION, *enrichRes.Compliance.Remediation)
 	}
 
 	for _, req := range enrichRes.Compliance.Requirements {

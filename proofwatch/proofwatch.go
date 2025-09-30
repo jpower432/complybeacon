@@ -3,19 +3,21 @@ package proofwatch
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"log"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/log"
+	olog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
 )
 
 type ProofWatch struct {
 	name          string
-	logger        log.Logger
+	logger        olog.Logger
 	observer      *EvidenceObserver
-	levelSeverity log.Severity
+	levelSeverity olog.Severity
 }
 
 // NewProofWatch creates a new ProofWatch instance with OpenTelemetry logging.
@@ -28,11 +30,18 @@ func NewProofWatch(name string, meter metric.Meter) (*ProofWatch, error) {
 		name:     name,
 		logger:   global.GetLoggerProvider().Logger("proofwatch"),
 		observer: observer,
+		// TODO: Allow this value to be overridden
+		levelSeverity: olog.SeverityInfo,
 	}, nil
 }
 
 // Log logs a policy event using OpenTelemetry's log API.
 func (w *ProofWatch) Log(ctx context.Context, evidence Evidence) error {
+	return w.LogWithSeverity(ctx, evidence, w.levelSeverity)
+}
+
+// LogWithSeverity logs a policy event using OpenTelemetry's log API with a given severity level
+func (w *ProofWatch) LogWithSeverity(ctx context.Context, evidence Evidence, severity olog.Severity) error {
 	attrs := MapOCSFToAttributes(evidence)
 
 	jsonData, err := json.Marshal(evidence)
@@ -40,12 +49,12 @@ func (w *ProofWatch) Log(ctx context.Context, evidence Evidence) error {
 		return err
 	}
 
-	record := log.Record{}
+	record := olog.Record{}
 	record.SetEventName("beacon.policy.log")
+	record.SetSeverity(severity)
 	record.SetObservedTimestamp(time.Now())
 	record.AddAttributes(ToLogKeyValues(attrs)...)
-	record.SetSeverity(w.levelSeverity)
-	record.SetBody(log.StringValue(string(jsonData))) // Retains the original body for flexibility.
+	record.SetBody(olog.StringValue(string(jsonData))) // Retains the original body for flexibility.
 
 	w.logger.Emit(ctx, record)
 
@@ -56,6 +65,12 @@ func (w *ProofWatch) Log(ctx context.Context, evidence Evidence) error {
 
 // MapOCSFToAttributes translates OCSF-based Evidence to Gemara-based attributes.
 func MapOCSFToAttributes(event Evidence) []attribute.KeyValue {
+	// Validate critical fields - log warnings for missing data but continue processing
+	// This allows the pipeline to continue even with incomplete data
+	if err := validateEvidenceFields(event); err != nil {
+		log.Printf("validation error %v, using default values", err)
+	}
+
 	attrs := []attribute.KeyValue{
 		// OCSF Standard Attributes (for interoperability)
 		attribute.Int("category_uid", int(event.CategoryUid)),
@@ -76,10 +91,10 @@ func MapOCSFToAttributes(event Evidence) []attribute.KeyValue {
 }
 
 // ToLogKeyValues converts slice of attribute.KeyValue to log.KeyValue
-func ToLogKeyValues(attrs []attribute.KeyValue) []log.KeyValue {
-	logAttrs := make([]log.KeyValue, len(attrs))
+func ToLogKeyValues(attrs []attribute.KeyValue) []olog.KeyValue {
+	logAttrs := make([]olog.KeyValue, len(attrs))
 	for i, attr := range attrs {
-		logAttrs[i] = log.KeyValueFromAttribute(attr)
+		logAttrs[i] = olog.KeyValueFromAttribute(attr)
 	}
 	return logAttrs
 }
@@ -138,4 +153,22 @@ func mapEnforcementStatus(actionID *int32, dispositionID *int32) string {
 	}
 	// Default to a fail or unknown for other cases
 	return "fail"
+}
+
+// validateEvidenceFields performs basic validation on Evidence fields and logs warnings
+// for missing critical data. This allows the pipeline to continue processing even with
+// incomplete data, which is important for resilience.
+func validateEvidenceFields(event Evidence) error {
+	if event.Policy.Uid == nil || *event.Policy.Uid == "" {
+		return errors.New("event is missing a policy id")
+	}
+
+	if event.Metadata.Product.Name == nil || *event.Metadata.Product.Name == "" {
+		return errors.New("event is missing a policy source")
+	}
+
+	if event.Status == nil || *event.Status == "" {
+		return errors.New("The event is missing a policy status")
+	}
+	return nil
 }
