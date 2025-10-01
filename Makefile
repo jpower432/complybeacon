@@ -91,7 +91,7 @@ api-codegen: ## Runs go generate for all the modules
 .PHONY: api-codegen
 
 #------------------------------------------------------------------------------
-# Weaver
+# Weaver - See documenation for more information https://github.com/open-telemetry/weaver?tab=readme-ov-file
 #------------------------------------------------------------------------------
 
 weaver-docsgen: ## Generate docs
