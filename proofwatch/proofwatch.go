@@ -168,7 +168,7 @@ func validateEvidenceFields(event Evidence) error {
 	}
 
 	if event.Status == nil || *event.Status == "" {
-		return errors.New("The event is missing a policy status")
+		return errors.New("the event is missing a policy status")
 	}
 	return nil
 }
