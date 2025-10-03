@@ -65,6 +65,8 @@ func (w *ProofWatch) LogWithSeverity(ctx context.Context, evidence Evidence, sev
 	record := olog.Record{}
 	record.SetSeverity(severity)
 	record.SetObservedTimestamp(time.Now())
+	// Set event time
+	record.SetTimestamp(time.UnixMilli(evidence.Time))
 	record.AddAttributes(ToLogKeyValues(attrs)...)
 	record.SetBody(olog.StringValue(string(jsonData))) // Retains the original body for flexibility.
 
