@@ -3,11 +3,13 @@ package proofwatch
 import (
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type config struct {
-	LogProvider   log.LoggerProvider
-	MeterProvider metric.MeterProvider
+	LoggerProvider log.LoggerProvider
+	MeterProvider  metric.MeterProvider
+	TracerProvider trace.TracerProvider
 }
 
 type OptionFunc func(*config)
@@ -27,7 +29,17 @@ func WithMeterProvider(provider metric.MeterProvider) OptionFunc {
 func WithLoggerProvider(provider log.LoggerProvider) OptionFunc {
 	return OptionFunc(func(cfg *config) {
 		if provider != nil {
-			cfg.LogProvider = provider
+			cfg.LoggerProvider = provider
+		}
+	})
+}
+
+// WithTracerProvider specifies a tracer provider to use for creating a tracer.
+// If none is specified, the global TracerProvider is used.
+func WithTracerProvider(provider trace.TracerProvider) OptionFunc {
+	return OptionFunc(func(cfg *config) {
+		if provider != nil {
+			cfg.TracerProvider = provider
 		}
 	})
 }

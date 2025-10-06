@@ -12,6 +12,7 @@ import (
 	olog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -21,6 +22,7 @@ const (
 
 type ProofWatch struct {
 	logger        olog.Logger
+	tracer        trace.Tracer
 	observer      *EvidenceObserver
 	levelSeverity olog.Severity
 }
@@ -28,8 +30,9 @@ type ProofWatch struct {
 // NewProofWatch creates a new ProofWatch instance with OpenTelemetry logging.
 func NewProofWatch(opts ...OptionFunc) (*ProofWatch, error) {
 	cfg := config{
-		MeterProvider: otel.GetMeterProvider(),
-		LogProvider:   global.GetLoggerProvider(),
+		MeterProvider:  otel.GetMeterProvider(),
+		LoggerProvider: global.GetLoggerProvider(),
+		TracerProvider: otel.GetTracerProvider(),
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -41,7 +44,8 @@ func NewProofWatch(opts ...OptionFunc) (*ProofWatch, error) {
 		return nil, err
 	}
 	return &ProofWatch{
-		logger:   cfg.LogProvider.Logger(ScopeName),
+		logger:   cfg.LoggerProvider.Logger(ScopeName, olog.WithInstrumentationVersion(Version())),
+		tracer:   cfg.TracerProvider.Tracer(ScopeName, trace.WithInstrumentationVersion(Version())),
 		observer: observer,
 		// Default severity
 		levelSeverity: olog.SeverityInfo,
@@ -55,6 +59,10 @@ func (w *ProofWatch) Log(ctx context.Context, evidence Evidence) error {
 
 // LogWithSeverity logs a policy event using OpenTelemetry's log API with a given severity level
 func (w *ProofWatch) LogWithSeverity(ctx context.Context, evidence Evidence, severity olog.Severity) error {
+
+	ctx, span := w.tracer.Start(ctx, "evidence.log_evidence")
+	defer span.End()
+
 	attrs := MapOCSFToAttributes(evidence)
 
 	jsonData, err := json.Marshal(evidence)
@@ -64,11 +72,14 @@ func (w *ProofWatch) LogWithSeverity(ctx context.Context, evidence Evidence, sev
 
 	record := olog.Record{}
 	record.SetSeverity(severity)
+	record.SetSeverityText(severity.String())
 	record.SetObservedTimestamp(time.Now())
 	// Set event time
 	record.SetTimestamp(time.UnixMilli(evidence.Time))
 	record.AddAttributes(ToLogKeyValues(attrs)...)
 	record.SetBody(olog.StringValue(string(jsonData))) // Retains the original body for flexibility.
+
+	span.AddEvent("evidence.logged", trace.WithAttributes(attrs...), trace.WithTimestamp(time.Now()))
 
 	w.logger.Emit(ctx, record)
 
