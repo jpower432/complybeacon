@@ -13,6 +13,8 @@ import (
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/complytime/complybeacon/proofwatch/internal/metrics"
 )
 
 const (
@@ -23,7 +25,7 @@ const (
 type ProofWatch struct {
 	logger        olog.Logger
 	tracer        trace.Tracer
-	observer      *EvidenceObserver
+	observer      *metrics.EvidenceObserver
 	levelSeverity olog.Severity
 }
 
@@ -39,7 +41,7 @@ func NewProofWatch(opts ...OptionFunc) (*ProofWatch, error) {
 	}
 
 	meter := cfg.MeterProvider.Meter(ScopeName, metric.WithInstrumentationVersion(Version()))
-	observer, err := NewEvidenceObserver(meter)
+	observer, err := metrics.NewEvidenceObserver(meter)
 	if err != nil {
 		return nil, err
 	}
