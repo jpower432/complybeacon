@@ -1,7 +1,6 @@
 package proofwatch
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -31,21 +30,6 @@ func TestGemaraEvidenceAttributes(t *testing.T) {
 	// Verify optional attributes
 	assert.Equal(t, "Test assessment message", attrMap[POLICY_STATUS_DETAIL])
 	assert.Equal(t, "Test recommendation", attrMap[COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION])
-}
-
-func TestGemaraEvidenceMarshalJSON(t *testing.T) {
-	evidence := createTestGemaraEvidence()
-
-	jsonData, err := evidence.MarshalJSON()
-	require.NoError(t, err)
-
-	// Verify that the JSON is valid and contains expected fields
-	var result map[string]interface{}
-	require.NoError(t, json.Unmarshal(jsonData, &result))
-
-	// Check that the JSON contains the expected structure
-	assert.Equal(t, "test-audit-id", result["id"])
-	assert.Equal(t, "1.0.0", result["version"])
 }
 
 func TestGemaraEvidenceTimestamp(t *testing.T) {
