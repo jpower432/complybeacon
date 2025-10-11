@@ -19,7 +19,7 @@ type Mapper struct {
 	plans map[string][]layer4.AssessmentPlan
 }
 
-func (m *Mapper) AddEvaluationPlan(catalogId string, plans []layer4.AssessmentPlan) {
+func (m *Mapper) AddEvaluationPlan(catalogId string, plans ...layer4.AssessmentPlan) {
 	existingPlans, ok := m.plans[catalogId]
 	if !ok {
 		m.plans[catalogId] = plans
@@ -77,8 +77,8 @@ func (m *Mapper) Map(evidence api.RawEvidence, scope mapper.Scope) (api.Complian
 						RequirementID string
 						Documentation string
 					}{
-						ControlID:     plan.ControlId,
-						RequirementID: requirement.RequirementId,
+						ControlID:     plan.Control.ReferenceId,
+						RequirementID: requirement.Requirement.ReferenceId,
 						Documentation: procedure.Documentation,
 					}
 				}
