@@ -1,7 +1,6 @@
 package proofwatch
 
 import (
-	"encoding/json"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -11,7 +10,7 @@ import (
 // and processed by the proofwatch.
 type Evidence interface {
 	// Marshaler serializes the evidence data to JSON format.
-	json.Marshaler
+	ToJSON() ([]byte, error)
 
 	// Attributes converts the evidence data into OpenTelemetry attribute key-value pairs
 	// for observability, monitoring, and compliance tracking purposes

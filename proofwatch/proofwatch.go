@@ -64,7 +64,7 @@ func (w *ProofWatch) LogWithSeverity(ctx context.Context, evidence Evidence, sev
 
 	attrs := evidence.Attributes()
 
-	jsonData, err := evidence.MarshalJSON()
+	jsonData, err := evidence.ToJSON()
 	if err != nil {
 		return err
 	}

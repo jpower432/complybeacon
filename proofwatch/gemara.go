@@ -18,7 +18,7 @@ type GemaraEvidence struct {
 	layer4.AssessmentLog
 }
 
-func (g GemaraEvidence) MarshalJSON() ([]byte, error) {
+func (g GemaraEvidence) ToJSON() ([]byte, error) {
 	return json.Marshal(g)
 }
 

@@ -29,7 +29,7 @@ func (o OCSFEvidence) Timestamp() time.Time {
 	return time.UnixMilli(o.Time)
 }
 
-func (o OCSFEvidence) MarshalJSON() ([]byte, error) {
+func (o OCSFEvidence) ToJSON() ([]byte, error) {
 	return json.Marshal(o)
 }
 
