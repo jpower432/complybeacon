@@ -103,7 +103,7 @@ func NewMapperFromDir(pluginID mapper.ID, evaluationsPath string) (mapper.Mapper
 		// Extract reference-ids from Assessment Plans to determine the
 		// control source.
 		for _, plan := range evaluation.Plans {
-			if plan.Control.ReferenceId != "" {
+			if plan.Control.ReferenceId == "" {
 				continue
 			}
 			mpr.AddEvaluationPlan(plan.Control.ReferenceId, plan)
