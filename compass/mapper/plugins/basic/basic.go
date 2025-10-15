@@ -10,7 +10,21 @@ import (
 	"github.com/complytime/complybeacon/compass/mapper"
 )
 
-// A basic mapper provide context in a shallow manner by parsing the known attributes.
+// ProcedureInfo represents information about a procedure including its control and requirement IDs
+type ProcedureInfo struct {
+	ControlID     string
+	RequirementID string
+	Documentation string
+}
+
+// ControlData represents control information including mappings and category
+type ControlData struct {
+	Mappings []layer2.Mapping
+	Category string
+}
+
+// A basic mapper processes assessment plans and maps evidence to compliance controls,
+// requirements, and standards using the gemara framework.
 
 var (
 	_  mapper.Mapper = (*Mapper)(nil)
@@ -96,25 +110,13 @@ func (m *Mapper) mapDecision(decision string) (api.StatusTitle, api.StatusId) {
 }
 
 // buildProceduresMap builds a map of procedure ID to procedure info.
-func (m *Mapper) buildProceduresMap(plans []layer4.AssessmentPlan) map[string]struct {
-	ControlID     string
-	RequirementID string
-	Documentation string
-} {
-	proceduresById := make(map[string]struct {
-		ControlID     string
-		RequirementID string
-		Documentation string
-	})
+func (m *Mapper) buildProceduresMap(plans []layer4.AssessmentPlan) map[string]ProcedureInfo {
+	proceduresById := make(map[string]ProcedureInfo)
 
 	for _, plan := range plans {
 		for _, requirement := range plan.Assessments {
 			for _, procedure := range requirement.Procedures {
-				proceduresById[procedure.Id] = struct {
-					ControlID     string
-					RequirementID string
-					Documentation string
-				}{
+				proceduresById[procedure.Id] = ProcedureInfo{
 					ControlID:     plan.Control.EntryId,
 					RequirementID: requirement.Requirement.EntryId,
 					Documentation: procedure.Documentation,
@@ -127,21 +129,12 @@ func (m *Mapper) buildProceduresMap(plans []layer4.AssessmentPlan) map[string]st
 }
 
 // buildControlDataMap builds a map of control ID to control data.
-func (m *Mapper) buildControlDataMap(catalog layer2.Catalog) map[string]struct {
-	Mappings []layer2.Mapping
-	Category string
-} {
-	controlData := make(map[string]struct {
-		Mappings []layer2.Mapping
-		Category string
-	})
+func (m *Mapper) buildControlDataMap(catalog layer2.Catalog) map[string]ControlData {
+	controlData := make(map[string]ControlData)
 
 	for _, family := range catalog.ControlFamilies {
 		for _, control := range family.Controls {
-			controlData[control.Id] = struct {
-				Mappings []layer2.Mapping
-				Category string
-			}{
+			controlData[control.Id] = ControlData{
 				Mappings: control.GuidelineMappings,
 				Category: family.Title,
 			}
