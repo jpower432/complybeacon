@@ -8,6 +8,45 @@ import (
 	"time"
 )
 
+// Defines values for ComplianceRiskLevel.
+const (
+	Critical      ComplianceRiskLevel = "Critical"
+	High          ComplianceRiskLevel = "High"
+	Informational ComplianceRiskLevel = "Informational"
+	Low           ComplianceRiskLevel = "Low"
+	Medium        ComplianceRiskLevel = "Medium"
+)
+
+// Defines values for EvidencePolicyEnforcementAction.
+const (
+	EvidencePolicyEnforcementActionAllow     EvidencePolicyEnforcementAction = "Allow"
+	EvidencePolicyEnforcementActionBlock     EvidencePolicyEnforcementAction = "Block"
+	EvidencePolicyEnforcementActionNotify    EvidencePolicyEnforcementAction = "Notify"
+	EvidencePolicyEnforcementActionRemediate EvidencePolicyEnforcementAction = "Remediate"
+	EvidencePolicyEnforcementActionUnknown   EvidencePolicyEnforcementAction = "Unknown"
+	EvidencePolicyEnforcementActionWaive     EvidencePolicyEnforcementAction = "Waive"
+)
+
+// Defines values for EvidencePolicyEnforcementStatus.
+const (
+	EvidencePolicyEnforcementStatusAllow     EvidencePolicyEnforcementStatus = "Allow"
+	EvidencePolicyEnforcementStatusBlock     EvidencePolicyEnforcementStatus = "Block"
+	EvidencePolicyEnforcementStatusNotify    EvidencePolicyEnforcementStatus = "Notify"
+	EvidencePolicyEnforcementStatusRemediate EvidencePolicyEnforcementStatus = "Remediate"
+	EvidencePolicyEnforcementStatusUnknown   EvidencePolicyEnforcementStatus = "Unknown"
+	EvidencePolicyEnforcementStatusWaive     EvidencePolicyEnforcementStatus = "Waive"
+)
+
+// Defines values for EvidencePolicyEvaluationStatus.
+const (
+	Failed        EvidencePolicyEvaluationStatus = "Failed"
+	NeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
+	NotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
+	NotRun        EvidencePolicyEvaluationStatus = "Not Run"
+	Passed        EvidencePolicyEvaluationStatus = "Passed"
+	Unknown       EvidencePolicyEvaluationStatus = "Unknown"
+)
+
 // Defines values for StatusId.
 const (
 	N0  StatusId = 0
@@ -19,47 +58,74 @@ const (
 
 // Defines values for StatusTitle.
 const (
-	Fail    StatusTitle = "Fail"
-	Other   StatusTitle = "Other"
-	Pass    StatusTitle = "Pass"
-	Unknown StatusTitle = "Unknown"
-	Warning StatusTitle = "Warning"
+	COMPLIANT     StatusTitle = "COMPLIANT"
+	EXEMPT        StatusTitle = "EXEMPT"
+	NONCOMPLIANT  StatusTitle = "NON_COMPLIANT"
+	NOTAPPLICABLE StatusTitle = "NOT_APPLICABLE"
+	UNKNOWN       StatusTitle = "UNKNOWN"
 )
 
 // Compliance Compliance details from OCSF Security Control Profile.
 type Compliance struct {
-	// Catalog Benchmark or Security Control Catalog id
-	Catalog string `json:"catalog"`
+	// Control Security control information for compliance assessment
+	Control ComplianceControl `json:"control"`
 
-	// Category The category a control framework pertains
+	// Frameworks Compliance framework and requirement information
+	Frameworks ComplianceFrameworks `json:"frameworks"`
+
+	// Risk Compliance risk assessment information
+	Risk *ComplianceRisk `json:"risk,omitempty"`
+
+	// Status Compliance Result
+	Status Status `json:"status"`
+}
+
+// ComplianceControl Security control information for compliance assessment
+type ComplianceControl struct {
+	// Applicability Environments or contexts where this control applies
+	Applicability *[]string `json:"applicability,omitempty"`
+
+	// CatalogId Unique identifier for the security control catalog or framework
+	CatalogId string `json:"catalogId"`
+
+	// Category Category or family that the security control belongs to
 	Category string `json:"category"`
 
-	// Control The Security Control being evaluated
-	Control string `json:"control"`
+	// Id Unique identifier for the security control being assessed
+	Id string `json:"id"`
 
-	// Remediation Optional remediation information
-	Remediation *string `json:"remediation,omitempty"`
-
-	// Requirements Assessment requirements Id
-	Requirements []string `json:"requirements"`
-
-	// Standards List of impacted compliance standards
-	Standards []string `json:"standards"`
+	// RemediationDescription Description of the recommended remediation strategy for this control
+	RemediationDescription *string `json:"remediationDescription,omitempty"`
 }
+
+// ComplianceFrameworks Compliance framework and requirement information
+type ComplianceFrameworks struct {
+	// Frameworks Regulatory or industry standards being evaluated for compliance
+	Frameworks []string `json:"frameworks"`
+
+	// Requirements Compliance requirement identifiers from the frameworks being evaluated
+	Requirements []string `json:"requirements"`
+}
+
+// ComplianceRisk Compliance risk assessment information
+type ComplianceRisk struct {
+	// Level Risk level associated with non-compliance
+	Level *ComplianceRiskLevel `json:"level,omitempty"`
+}
+
+// ComplianceRiskLevel Risk level associated with non-compliance
+type ComplianceRiskLevel string
 
 // EnrichmentRequest defines model for EnrichmentRequest.
 type EnrichmentRequest struct {
-	Evidence RawEvidence `json:"evidence"`
+	// Evidence Complete evidence log from policy engines and compliance assessment tools
+	Evidence Evidence `json:"evidence"`
 }
 
 // EnrichmentResponse Enriched compliance finding with risk attributes and threat mappings.
 type EnrichmentResponse struct {
 	// Compliance Compliance details from OCSF Security Control Profile.
 	Compliance Compliance `json:"compliance"`
-
-	// Status Compliance Result
-	Status  Status           `json:"status"`
-	Threats *[]ThreatMapping `json:"threats,omitempty"`
 }
 
 // Error defines model for Error.
@@ -71,67 +137,59 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-// RawEvidence defines model for RawEvidence.
-type RawEvidence struct {
-	// CategoryId A category ID for raw data OCSF schema
-	CategoryId *int `json:"category_id,omitempty"`
+// Evidence Complete evidence log from policy engines and compliance assessment tools
+type Evidence struct {
+	// PolicyEnforcementAction Action taken by the policy engine
+	PolicyEnforcementAction EvidencePolicyEnforcementAction `json:"policyEnforcementAction"`
 
-	// ClassId A event class id for raw data OCSF schema
-	ClassId *int `json:"class_id,omitempty"`
+	// PolicyEnforcementStatus Result of the policy enforcement action
+	PolicyEnforcementStatus *EvidencePolicyEnforcementStatus `json:"policyEnforcementStatus,omitempty"`
 
-	// Decision The decision made by the policy engine (e.g., "compliant", "non-compliant").
-	Decision string `json:"decision"`
+	// PolicyEngineName Name of the policy engine that performed the evaluation or enforcement action
+	PolicyEngineName string `json:"policyEngineName"`
 
-	// Id Unique identifier for the raw evidence.
-	Id string `json:"id"`
+	// PolicyEvaluationStatus Result of the policy evaluation
+	PolicyEvaluationStatus EvidencePolicyEvaluationStatus `json:"policyEvaluationStatus"`
 
-	// PolicyId The ID of the policy that generated the evidence.
-	PolicyId string `json:"policyId"`
+	// PolicyExceptionApproved Whether the policy exception was approved for this evaluation or enforcement
+	PolicyExceptionApproved *bool `json:"policyExceptionApproved,omitempty"`
 
-	// RawData Raw JSON output from the policy engine.
+	// PolicyExceptionId Unique identifier for the approved policy exception, if applicable
+	PolicyExceptionId *string `json:"policyExceptionId,omitempty"`
+
+	// PolicyRuleId Unique identifier for the policy rule being evaluated or enforced
+	PolicyRuleId string `json:"policyRuleId"`
+
+	// RawData Raw JSON output from the policy engine
 	RawData json.RawMessage `json:"rawData,omitempty"`
 
-	// Source The source of the raw evidence (e.g., policy engine name).
-	Source string `json:"source"`
-
-	// Timestamp The time when the raw evidence was generated.
+	// Timestamp The time when the raw evidence was generated
 	Timestamp time.Time `json:"timestamp"`
 }
 
+// EvidencePolicyEnforcementAction Action taken by the policy engine
+type EvidencePolicyEnforcementAction string
+
+// EvidencePolicyEnforcementStatus Result of the policy enforcement action
+type EvidencePolicyEnforcementStatus string
+
+// EvidencePolicyEvaluationStatus Result of the policy evaluation
+type EvidencePolicyEvaluationStatus string
+
 // Status Compliance Result
 type Status struct {
-	// Id Compliance status ID.
+	// Id Compliance status ID (0=COMPLIANT, 1=NON_COMPLIANT, 2=EXEMPT, 3=NOT_APPLICABLE, 99=UNKNOWN).
 	Id *StatusId `json:"id,omitempty"`
 
 	// Title Compliance status.
 	Title StatusTitle `json:"title"`
 }
 
-// StatusId Compliance status ID.
+// StatusId Compliance status ID (0=COMPLIANT, 1=NON_COMPLIANT, 2=EXEMPT, 3=NOT_APPLICABLE, 99=UNKNOWN).
 type StatusId int
 
 // StatusTitle Compliance status.
 type StatusTitle string
-
-// ThreatIdentifier A specific threat technique or sub-technique.
-type ThreatIdentifier struct {
-	// Id The MITRE ID (e.g., T1059.004).
-	Id string `json:"id"`
-
-	// Name The name of the technique.
-	Name string `json:"name"`
-
-	// Url The URL to the technique's page for more information.
-	Url string `json:"url"`
-}
-
-// ThreatMapping A mapping to an external security framework, like MITRE ATT&CK.
-type ThreatMapping struct {
-	Identifiers []ThreatIdentifier `json:"identifiers"`
-
-	// ReferenceId The name of the external reference (e.g., MITRE-ATT&CK).
-	ReferenceId string `json:"referenceId"`
-}
 
 // PostV1EnrichJSONRequestBody defines body for PostV1Enrich for application/json ContentType.
 type PostV1EnrichJSONRequestBody = EnrichmentRequest
