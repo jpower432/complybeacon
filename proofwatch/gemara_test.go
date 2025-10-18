@@ -27,15 +27,15 @@ func TestGemaraEvidenceAttributes(t *testing.T) {
 	attrMap := attrsToMap(t, attrs)
 
 	// Core compliance attributes
-	assert.Equal(t, "test-author", attrMap[POLICY_SOURCE])
+	assert.Equal(t, "test-author", attrMap[POLICY_ENGINE_NAME])
 	assert.Equal(t, "test-control-id", attrMap[COMPLIANCE_CONTROL_ID])
 	assert.Equal(t, "test-catalog-id", attrMap[COMPLIANCE_CONTROL_CATALOG_ID])
 	assert.Equal(t, "Passed", attrMap[POLICY_EVALUATION_STATUS])
 	assert.Equal(t, "audit", attrMap[POLICY_ENFORCEMENT_ACTION])
-	assert.Equal(t, "test-procedure-id", attrMap[POLICY_ID])
+	assert.Equal(t, "test-procedure-id", attrMap[POLICY_RULE_ID])
 
 	// Optional attributes
-	assert.Equal(t, "Test assessment message", attrMap[POLICY_STATUS_DETAIL])
+	assert.Equal(t, "Test assessment message", attrMap[POLICY_STATUS_MESSAGE])
 	assert.Equal(t, "Test recommendation", attrMap[COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION])
 }
 
@@ -113,11 +113,11 @@ func TestGemaraEvidenceAttributesEmptyFields(t *testing.T) {
 	attrMap := attrsToMap(t, attrs)
 
 	// Required present
-	assert.Equal(t, "test-author", attrMap[POLICY_SOURCE])
+	assert.Equal(t, "test-author", attrMap[POLICY_ENGINE_NAME])
 	assert.Equal(t, "test-control-id", attrMap[COMPLIANCE_CONTROL_ID])
 
 	// Optional omitted
-	assert.NotContains(t, attrMap, POLICY_STATUS_DETAIL)
+	assert.NotContains(t, attrMap, POLICY_STATUS_MESSAGE)
 	assert.NotContains(t, attrMap, COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION)
 }
 
