@@ -19,22 +19,22 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 	// Retrieve lookup attributes
 	var missingAttrs []string
 
-	policyIDVal, ok := attrs.Get(POLICY_ID)
+	policyRuleIDVal, ok := attrs.Get(POLICY_RULE_ID)
 	if !ok {
-		missingAttrs = append(missingAttrs, POLICY_ID)
+		missingAttrs = append(missingAttrs, POLICY_RULE_ID)
 	}
 
-	policyAction, ok := attrs.Get(POLICY_ENFORCEMENT_ACTION)
+	policyEnforcementAction, ok := attrs.Get(POLICY_ENFORCEMENT_ACTION)
 	if !ok {
 		missingAttrs = append(missingAttrs, POLICY_ENFORCEMENT_ACTION)
 	}
 
-	policySourceVal, ok := attrs.Get(POLICY_SOURCE)
+	policySourceVal, ok := attrs.Get(POLICY_ENGINE_NAME)
 	if !ok {
-		missingAttrs = append(missingAttrs, POLICY_SOURCE)
+		missingAttrs = append(missingAttrs, POLICY_ENGINE_NAME)
 	}
 
-	policyDecisionVal, ok := attrs.Get(POLICY_EVALUATION_STATUS)
+	policyEvalStatusVal, ok := attrs.Get(POLICY_EVALUATION_STATUS)
 	if !ok {
 		missingAttrs = append(missingAttrs, POLICY_EVALUATION_STATUS)
 	}
@@ -45,11 +45,11 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 
 	enrichReq := EnrichmentRequest{
 		Evidence: Evidence{
-			Timestamp: logRecord.Timestamp().AsTime(),
-			Source:    policySourceVal.Str(),
-			PolicyId:  policyIDVal.Str(),
-			Decision:  policyDecisionVal.Str(),
-			Action:    policyAction.Str(),
+			Timestamp:               logRecord.Timestamp().AsTime(),
+			PolicyEngineName:        policySourceVal.Str(),
+			PolicyRuleId:            policyRuleIDVal.Str(),
+			PolicyEvaluationStatus:  EvidencePolicyEvaluationStatus(policyEvalStatusVal.Str()),
+			PolicyEnforcementAction: EvidencePolicyEnforcementAction(policyEnforcementAction.Str()),
 		},
 	}
 
@@ -58,22 +58,22 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 		return err
 	}
 
-	attrs.PutStr(COMPLIANCE_STATUS, string(enrichRes.Status.Title))
-	attrs.PutStr(COMPLIANCE_CONTROL_ID, enrichRes.Compliance.Control)
-	attrs.PutStr(COMPLIANCE_CONTROL_CATALOG_ID, enrichRes.Compliance.Catalog)
-	attrs.PutStr(COMPLIANCE_CATEGORY, enrichRes.Compliance.Category)
+	attrs.PutStr(COMPLIANCE_STATUS, string(enrichRes.Compliance.Status.Title))
+	attrs.PutStr(COMPLIANCE_CONTROL_ID, enrichRes.Compliance.Control.Id)
+	attrs.PutStr(COMPLIANCE_CONTROL_CATALOG_ID, enrichRes.Compliance.Control.CatalogId)
+	attrs.PutStr(COMPLIANCE_CONTROL_CATEGORY, enrichRes.Compliance.Control.Category)
 	requirements := attrs.PutEmptySlice(COMPLIANCE_REQUIREMENTS)
-	standards := attrs.PutEmptySlice(COMPLIANCE_STANDARDS)
+	standards := attrs.PutEmptySlice(COMPLIANCE_FRAMEWORKS)
 
-	if enrichRes.Compliance.Remediation != nil {
-		attrs.PutStr(COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION, *enrichRes.Compliance.Remediation)
+	if enrichRes.Compliance.Control.RemediationDescription != nil {
+		attrs.PutStr(COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION, *enrichRes.Compliance.Control.RemediationDescription)
 	}
 
-	for _, req := range enrichRes.Compliance.Requirements {
+	for _, req := range enrichRes.Compliance.Frameworks.Requirements {
 		newReq := requirements.AppendEmpty()
 		newReq.SetStr(req)
 	}
-	for _, std := range enrichRes.Compliance.Standards {
+	for _, std := range enrichRes.Compliance.Frameworks.Frameworks {
 		newStd := standards.AppendEmpty()
 		newStd.SetStr(std)
 	}
