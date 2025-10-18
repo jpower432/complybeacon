@@ -17,26 +17,6 @@ const (
 	Medium        ComplianceRiskLevel = "Medium"
 )
 
-// Defines values for EvidencePolicyEnforcementAction.
-const (
-	EvidencePolicyEnforcementActionAllow     EvidencePolicyEnforcementAction = "Allow"
-	EvidencePolicyEnforcementActionBlock     EvidencePolicyEnforcementAction = "Block"
-	EvidencePolicyEnforcementActionNotify    EvidencePolicyEnforcementAction = "Notify"
-	EvidencePolicyEnforcementActionRemediate EvidencePolicyEnforcementAction = "Remediate"
-	EvidencePolicyEnforcementActionUnknown   EvidencePolicyEnforcementAction = "Unknown"
-	EvidencePolicyEnforcementActionWaive     EvidencePolicyEnforcementAction = "Waive"
-)
-
-// Defines values for EvidencePolicyEnforcementStatus.
-const (
-	EvidencePolicyEnforcementStatusAllow     EvidencePolicyEnforcementStatus = "Allow"
-	EvidencePolicyEnforcementStatusBlock     EvidencePolicyEnforcementStatus = "Block"
-	EvidencePolicyEnforcementStatusNotify    EvidencePolicyEnforcementStatus = "Notify"
-	EvidencePolicyEnforcementStatusRemediate EvidencePolicyEnforcementStatus = "Remediate"
-	EvidencePolicyEnforcementStatusUnknown   EvidencePolicyEnforcementStatus = "Unknown"
-	EvidencePolicyEnforcementStatusWaive     EvidencePolicyEnforcementStatus = "Waive"
-)
-
 // Defines values for EvidencePolicyEvaluationStatus.
 const (
 	Failed        EvidencePolicyEvaluationStatus = "Failed"
@@ -139,23 +119,11 @@ type Error struct {
 
 // Evidence Complete evidence log from policy engines and compliance assessment tools
 type Evidence struct {
-	// PolicyEnforcementAction Action taken by the policy engine
-	PolicyEnforcementAction EvidencePolicyEnforcementAction `json:"policyEnforcementAction"`
-
-	// PolicyEnforcementStatus Result of the policy enforcement action
-	PolicyEnforcementStatus *EvidencePolicyEnforcementStatus `json:"policyEnforcementStatus,omitempty"`
-
 	// PolicyEngineName Name of the policy engine that performed the evaluation or enforcement action
 	PolicyEngineName string `json:"policyEngineName"`
 
 	// PolicyEvaluationStatus Result of the policy evaluation
 	PolicyEvaluationStatus EvidencePolicyEvaluationStatus `json:"policyEvaluationStatus"`
-
-	// PolicyExceptionApproved Whether the policy exception was approved for this evaluation or enforcement
-	PolicyExceptionApproved *bool `json:"policyExceptionApproved,omitempty"`
-
-	// PolicyExceptionId Unique identifier for the approved policy exception, if applicable
-	PolicyExceptionId *string `json:"policyExceptionId,omitempty"`
 
 	// PolicyRuleId Unique identifier for the policy rule being evaluated or enforced
 	PolicyRuleId string `json:"policyRuleId"`
@@ -166,12 +134,6 @@ type Evidence struct {
 	// Timestamp The time when the raw evidence was generated
 	Timestamp time.Time `json:"timestamp"`
 }
-
-// EvidencePolicyEnforcementAction Action taken by the policy engine
-type EvidencePolicyEnforcementAction string
-
-// EvidencePolicyEnforcementStatus Result of the policy enforcement action
-type EvidencePolicyEnforcementStatus string
 
 // EvidencePolicyEvaluationStatus Result of the policy evaluation
 type EvidencePolicyEvaluationStatus string
