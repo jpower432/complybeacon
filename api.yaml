@@ -70,25 +70,6 @@ components:
           enum: ["Not Run", "Passed", "Failed", "Needs Review", "Not Applicable", "Unknown"]
           description: Result of the policy evaluation
         
-        # Policy Enforcement
-        policyEnforcementAction:
-          type: string
-          enum: ["Block", "Allow", "Remediate", "Waive", "Notify", "Unknown"]
-          description: Action taken by the policy engine
-        policyEnforcementStatus:
-          type: string
-          enum: ["Block", "Allow", "Remediate", "Waive", "Notify", "Unknown"]
-          description: Result of the policy enforcement action
-        
-        # Policy Exceptions
-        policyExceptionId:
-          type: string
-          description: Unique identifier for the approved policy exception, if applicable
-          examples: ["EX-2025-10-001", "WAIVE-AC-1-001"]
-        policyExceptionApproved:
-          type: boolean
-          description: Whether the policy exception was approved for this evaluation or enforcement
-          examples: [true, false]
         rawData:
           type: string
           format: json

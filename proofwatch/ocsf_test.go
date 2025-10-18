@@ -24,7 +24,7 @@ func TestOCSFEvidenceAttributes(t *testing.T) {
 	assert.Equal(t, "test-product", attrMap[POLICY_ENGINE_NAME])
 
 	// Verify evaluation status mapping
-	assert.Equal(t, "Passed", attrMap[POLICY_EVALUATION_STATUS])
+	assert.Equal(t, "Passed", attrMap[POLICY_EVALUATION_RESULT])
 }
 
 func TestMapEvaluationStatus(t *testing.T) {

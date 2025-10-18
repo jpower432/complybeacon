@@ -42,34 +42,20 @@ groups:
         examples:
           ["github.com/org/policy-repo/b8a7c2e", "gitlab.com/company/policies@v1.2.3"]
         requirement_level: recommended
-      - id: policy.evaluation.status
+      - id: policy.evaluation.result
         type: string
         stability: development
         brief: >
           Result of the policy evaluation: Not Run, Passed, Failed, Needs Review, Not Applicable, or Unknown.
         examples: [ "Not Run", "Passed", "Failed", "Needs Review", "Not Applicable", "Unknown" ]
         requirement_level: required
-      - id: policy.status.message
+      - id: policy.evaluation.message
         type: string
         stability: development
         brief: >
           Additional context about the policy evaluation result.
         requirement_level: opt_in
         examples: ["The policy evaluation failed due to a missing attribute."]
-      - id: policy.enforcement.action
-        type: string
-        stability: development
-        brief: >
-          Action taken by the policy engine: Block, Allow, Remediate, Waive, Notify, or Unknown.
-        examples: [ "Block", "Allow", "Remediate", "Waive", "Notify", "Unknown" ]
-        requirement_level: opt_in
-      - id: policy.enforcement.status
-        type: string
-        stability: development
-        brief: >
-          Result of the policy enforcement action: Block, Allow, Remediate, Waive, Notify, or Unknown.
-        examples: [ "Block", "Allow", "Remediate", "Waive", "Notify", "Unknown" ]
-        requirement_level: opt_in
       - id: policy.target.id
         type: string
         stability: development
@@ -97,20 +83,6 @@ groups:
         brief: >
           Environment where the target resource or entity exists.
         examples: [ "production", "staging", "development" ]
-        requirement_level: opt_in
-      - id: policy.exception.id
-        type: string
-        stability: development
-        brief: >
-          Unique identifier for the approved policy exception, if applicable.
-        examples: [ "EX-2025-10-001", "WAIVE-AC-1-001" ]
-        requirement_level: opt_in
-      - id: policy.exception.approved
-        type: boolean
-        stability: development
-        brief: >
-          Whether the policy exception was approved for this evaluation or enforcement.
-        examples: [ true, false ]
         requirement_level: opt_in
 
   - id: registry.compliance
@@ -194,4 +166,32 @@ groups:
         brief: >
           Risk level associated with non-compliance: Critical, High, Medium, Low, or Informational.
         examples: [ "Critical", "High", "Medium", "Low", "Informational" ]
+        requirement_level: opt_in
+      - id: compliance.exception.id
+        type: string
+        stability: development
+        brief: >
+          Unique identifier for the approved exception, if applicable.
+        examples: [ "EX-2025-10-001", "WAIVE-AC-1-001" ]
+        requirement_level: opt_in
+      - id: compliance.exception.active
+        type: boolean
+        stability: development
+        brief: >
+          Whether the exception was approved for this evaluation or enforcement.
+        examples: [ true, false ]
+        requirement_level: opt_in
+      - id: compliance.remediation.action
+        type: string
+        stability: development
+        brief: >
+          Action taken by the policy engine: Block, Allow, Remediate, Waive, Notify, or Unknown.
+        examples: [ "Block", "Allow", "Remediate", "Waive", "Notify", "Unknown" ]
+        requirement_level: opt_in
+      - id: compliance.remediation.status
+        type: string
+        stability: development
+        brief: >
+          Result of the policy enforcement action.
+        examples: [ "Success", "Fail", "Skipped", "Unknown" ]
         requirement_level: opt_in
