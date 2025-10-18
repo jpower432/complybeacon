@@ -49,11 +49,11 @@ func (o OCSFEvidence) Attributes() []attribute.KeyValue {
 		attribute.String(POLICY_RULE_NAME, stringVal(o.Policy.Name, "unknown_policy_name")),
 		attribute.String(POLICY_ENGINE_NAME, stringVal(o.Metadata.Product.Name, "unknown_source")),
 
-		attribute.String(POLICY_EVALUATION_STATUS, mapEvaluationStatus(o.Status)),
-		attribute.String(POLICY_STATUS_MESSAGE, stringVal(o.Message, "")),
+		attribute.String(POLICY_EVALUATION_RESULT, mapEvaluationStatus(o.Status)),
+		attribute.String(POLICY_EVALUATION_MESSAGE, stringVal(o.Message, "")),
 
-		attribute.String(POLICY_ENFORCEMENT_ACTION, mapEnforcementAction(o.ActionID, o.DispositionID)),
-		attribute.String(POLICY_ENFORCEMENT_STATUS, mapEnforcementStatus(o.ActionID, o.DispositionID)),
+		attribute.String(COMPLIANCE_REMEDIATION_ACTION, mapEnforcementAction(o.ActionID, o.DispositionID)),
+		attribute.String(COMPLIANCE_REMEDIATION_STATUS, mapEnforcementStatus(o.ActionID, o.DispositionID)),
 	}
 
 	return attrs

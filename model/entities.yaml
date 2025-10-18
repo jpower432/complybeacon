@@ -13,22 +13,14 @@ groups:
       - ref: policy.uri
       
       # Policy Evaluation
-      - ref: policy.evaluation.status
-      - ref: policy.status.message
-      
-      # Policy Enforcement
-      - ref: policy.enforcement.action
-      - ref: policy.enforcement.status
+      - ref: policy.evaluation.result
+      - ref: policy.evaluation.message
       
       # Policy Target
       - ref: policy.target.id
       - ref: policy.target.name
       - ref: policy.target.type
       - ref: policy.target.environment
-      
-      # Policy Exceptions
-      - ref: policy.exception.id
-      - ref: policy.exception.approved
       
       # Compliance Control
       - ref: compliance.control.id
@@ -44,3 +36,12 @@ groups:
       # Compliance Verdict
       - ref: compliance.status
       - ref: compliance.risk.level
+
+      # Compliance Remediation/Enforcement
+      - ref: compliance.remediation.action
+      - ref: compliance.remediation.status
+
+      #  Exceptions
+      - ref: compliance.exception.id
+      - ref: compliance.exception.active
+
