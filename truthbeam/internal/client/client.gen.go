@@ -32,6 +32,14 @@ const (
 	UNKNOWN       ComplianceStatus = "UNKNOWN"
 )
 
+// Defines values for ComplianceMetadataEnrichmentStatus.
+const (
+	ComplianceMetadataEnrichmentStatusPartial  ComplianceMetadataEnrichmentStatus = "partial"
+	ComplianceMetadataEnrichmentStatusSuccess  ComplianceMetadataEnrichmentStatus = "success"
+	ComplianceMetadataEnrichmentStatusUnknown  ComplianceMetadataEnrichmentStatus = "unknown"
+	ComplianceMetadataEnrichmentStatusUnmapped ComplianceMetadataEnrichmentStatus = "unmapped"
+)
+
 // Defines values for ComplianceRiskLevel.
 const (
 	Critical      ComplianceRiskLevel = "Critical"
@@ -43,13 +51,81 @@ const (
 
 // Defines values for EvidencePolicyEvaluationStatus.
 const (
-	EvidencePolicyEvaluationStatusFailed        EvidencePolicyEvaluationStatus = "Failed"
-	EvidencePolicyEvaluationStatusNeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
-	EvidencePolicyEvaluationStatusNotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
-	EvidencePolicyEvaluationStatusNotRun        EvidencePolicyEvaluationStatus = "Not Run"
-	EvidencePolicyEvaluationStatusPassed        EvidencePolicyEvaluationStatus = "Passed"
-	EvidencePolicyEvaluationStatusUnknown       EvidencePolicyEvaluationStatus = "Unknown"
+	Failed        EvidencePolicyEvaluationStatus = "Failed"
+	NeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
+	NotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
+	NotRun        EvidencePolicyEvaluationStatus = "Not Run"
+	Passed        EvidencePolicyEvaluationStatus = "Passed"
+	Unknown       EvidencePolicyEvaluationStatus = "Unknown"
 )
+
+// BatchError defines model for BatchError.
+type BatchError struct {
+	// Code Error code
+	Code string `json:"code"`
+
+	// Message Error message
+	Message string `json:"message"`
+}
+
+// BatchMetadataRequest defines model for BatchMetadataRequest.
+type BatchMetadataRequest struct {
+	Options *BatchOptions `json:"options,omitempty"`
+
+	// PolicyEngineNames Array of policy engine names (optional, for context)
+	PolicyEngineNames *[]string `json:"policyEngineNames,omitempty"`
+
+	// PolicyRuleIds Array of policy rule IDs to retrieve metadata for
+	PolicyRuleIds []string `json:"policyRuleIds"`
+}
+
+// BatchMetadataResponse defines model for BatchMetadataResponse.
+type BatchMetadataResponse struct {
+	// Results Results for each policy rule in the batch
+	Results []BatchMetadataResult `json:"results"`
+	Summary BatchSummary          `json:"summary"`
+}
+
+// BatchMetadataResult defines model for BatchMetadataResult.
+type BatchMetadataResult struct {
+	Error *BatchError `json:"error,omitempty"`
+
+	// Index Index of the policy rule in the original batch
+	Index int `json:"index"`
+
+	// Metadata Static compliance metadata that can be cached
+	Metadata *ComplianceMetadata `json:"metadata,omitempty"`
+
+	// PolicyRuleId The policy rule ID
+	PolicyRuleId string `json:"policyRuleId"`
+}
+
+// BatchOptions defines model for BatchOptions.
+type BatchOptions struct {
+	// MaxConcurrency Maximum number of concurrent requests to process
+	MaxConcurrency *int `json:"max_concurrency,omitempty"`
+
+	// ReturnErrors Whether to include errors in the response
+	ReturnErrors *bool `json:"return_errors,omitempty"`
+
+	// TimeoutSeconds Timeout in seconds for the entire batch operation
+	TimeoutSeconds *int `json:"timeout_seconds,omitempty"`
+}
+
+// BatchSummary defines model for BatchSummary.
+type BatchSummary struct {
+	// DurationMs Total processing time in milliseconds
+	DurationMs int `json:"duration_ms"`
+
+	// Failed Number of failed requests
+	Failed int `json:"failed"`
+
+	// Success Number of successfully processed requests
+	Success int `json:"success"`
+
+	// Total Total number of requests in the batch
+	Total int `json:"total"`
+}
 
 // Compliance Compliance details from OCSF Security Control Profile.
 type Compliance struct {
@@ -66,7 +142,7 @@ type Compliance struct {
 	Risk *ComplianceRisk `json:"risk,omitempty"`
 
 	// Status Compliance status
-	Status ComplianceStatus `json:"status"`
+	Status *ComplianceStatus `json:"status,omitempty"`
 }
 
 // ComplianceEnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
@@ -101,6 +177,24 @@ type ComplianceFrameworks struct {
 	// Requirements Compliance requirement identifiers from the frameworks being evaluated
 	Requirements []string `json:"requirements"`
 }
+
+// ComplianceMetadata Static compliance metadata that can be cached
+type ComplianceMetadata struct {
+	// Control Security control information for compliance assessment
+	Control ComplianceControl `json:"control"`
+
+	// EnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
+	EnrichmentStatus ComplianceMetadataEnrichmentStatus `json:"enrichmentStatus"`
+
+	// Frameworks Compliance framework and requirement information
+	Frameworks ComplianceFrameworks `json:"frameworks"`
+
+	// Risk Compliance risk assessment information
+	Risk *ComplianceRisk `json:"risk,omitempty"`
+}
+
+// ComplianceMetadataEnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
+type ComplianceMetadataEnrichmentStatus string
 
 // ComplianceRisk Compliance risk assessment information
 type ComplianceRisk struct {
@@ -155,6 +249,9 @@ type EvidencePolicyEvaluationStatus string
 
 // PostV1EnrichJSONRequestBody defines body for PostV1Enrich for application/json ContentType.
 type PostV1EnrichJSONRequestBody = EnrichmentRequest
+
+// PostV1MetadataBatchJSONRequestBody defines body for PostV1MetadataBatch for application/json ContentType.
+type PostV1MetadataBatchJSONRequestBody = BatchMetadataRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -233,6 +330,11 @@ type ClientInterface interface {
 	PostV1EnrichWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PostV1Enrich(ctx context.Context, body PostV1EnrichJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostV1MetadataBatchWithBody request with any body
+	PostV1MetadataBatchWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostV1MetadataBatch(ctx context.Context, body PostV1MetadataBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) PostV1EnrichWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -249,6 +351,30 @@ func (c *Client) PostV1EnrichWithBody(ctx context.Context, contentType string, b
 
 func (c *Client) PostV1Enrich(ctx context.Context, body PostV1EnrichJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostV1EnrichRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostV1MetadataBatchWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostV1MetadataBatchRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostV1MetadataBatch(ctx context.Context, body PostV1MetadataBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostV1MetadataBatchRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -280,6 +406,46 @@ func NewPostV1EnrichRequestWithBody(server string, contentType string, body io.R
 	}
 
 	operationPath := fmt.Sprintf("/v1/enrich")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostV1MetadataBatchRequest calls the generic PostV1MetadataBatch builder with application/json body
+func NewPostV1MetadataBatchRequest(server string, body PostV1MetadataBatchJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostV1MetadataBatchRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostV1MetadataBatchRequestWithBody generates requests for PostV1MetadataBatch with any type of body
+func NewPostV1MetadataBatchRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/metadata/batch")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -346,6 +512,11 @@ type ClientWithResponsesInterface interface {
 	PostV1EnrichWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1EnrichResponse, error)
 
 	PostV1EnrichWithResponse(ctx context.Context, body PostV1EnrichJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1EnrichResponse, error)
+
+	// PostV1MetadataBatchWithBodyWithResponse request with any body
+	PostV1MetadataBatchWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1MetadataBatchResponse, error)
+
+	PostV1MetadataBatchWithResponse(ctx context.Context, body PostV1MetadataBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1MetadataBatchResponse, error)
 }
 
 type PostV1EnrichResponse struct {
@@ -371,6 +542,30 @@ func (r PostV1EnrichResponse) StatusCode() int {
 	return 0
 }
 
+type PostV1MetadataBatchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *BatchMetadataResponse
+	JSON400      *Error
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r PostV1MetadataBatchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostV1MetadataBatchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // PostV1EnrichWithBodyWithResponse request with arbitrary body returning *PostV1EnrichResponse
 func (c *ClientWithResponses) PostV1EnrichWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1EnrichResponse, error) {
 	rsp, err := c.PostV1EnrichWithBody(ctx, contentType, body, reqEditors...)
@@ -386,6 +581,23 @@ func (c *ClientWithResponses) PostV1EnrichWithResponse(ctx context.Context, body
 		return nil, err
 	}
 	return ParsePostV1EnrichResponse(rsp)
+}
+
+// PostV1MetadataBatchWithBodyWithResponse request with arbitrary body returning *PostV1MetadataBatchResponse
+func (c *ClientWithResponses) PostV1MetadataBatchWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1MetadataBatchResponse, error) {
+	rsp, err := c.PostV1MetadataBatchWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostV1MetadataBatchResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostV1MetadataBatchWithResponse(ctx context.Context, body PostV1MetadataBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1MetadataBatchResponse, error) {
+	rsp, err := c.PostV1MetadataBatch(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostV1MetadataBatchResponse(rsp)
 }
 
 // ParsePostV1EnrichResponse parses an HTTP response from a PostV1EnrichWithResponse call
@@ -408,6 +620,46 @@ func ParsePostV1EnrichResponse(rsp *http.Response) (*PostV1EnrichResponse, error
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostV1MetadataBatchResponse parses an HTTP response from a PostV1MetadataBatchWithResponse call
+func ParsePostV1MetadataBatchResponse(rsp *http.Response) (*PostV1MetadataBatchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostV1MetadataBatchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest BatchMetadataResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
 		var dest Error

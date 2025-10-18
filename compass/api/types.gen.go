@@ -24,6 +24,14 @@ const (
 	UNKNOWN       ComplianceStatus = "UNKNOWN"
 )
 
+// Defines values for ComplianceMetadataEnrichmentStatus.
+const (
+	ComplianceMetadataEnrichmentStatusPartial  ComplianceMetadataEnrichmentStatus = "partial"
+	ComplianceMetadataEnrichmentStatusSuccess  ComplianceMetadataEnrichmentStatus = "success"
+	ComplianceMetadataEnrichmentStatusUnknown  ComplianceMetadataEnrichmentStatus = "unknown"
+	ComplianceMetadataEnrichmentStatusUnmapped ComplianceMetadataEnrichmentStatus = "unmapped"
+)
+
 // Defines values for ComplianceRiskLevel.
 const (
 	Critical      ComplianceRiskLevel = "Critical"
@@ -35,13 +43,81 @@ const (
 
 // Defines values for EvidencePolicyEvaluationStatus.
 const (
-	EvidencePolicyEvaluationStatusFailed        EvidencePolicyEvaluationStatus = "Failed"
-	EvidencePolicyEvaluationStatusNeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
-	EvidencePolicyEvaluationStatusNotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
-	EvidencePolicyEvaluationStatusNotRun        EvidencePolicyEvaluationStatus = "Not Run"
-	EvidencePolicyEvaluationStatusPassed        EvidencePolicyEvaluationStatus = "Passed"
-	EvidencePolicyEvaluationStatusUnknown       EvidencePolicyEvaluationStatus = "Unknown"
+	Failed        EvidencePolicyEvaluationStatus = "Failed"
+	NeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
+	NotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
+	NotRun        EvidencePolicyEvaluationStatus = "Not Run"
+	Passed        EvidencePolicyEvaluationStatus = "Passed"
+	Unknown       EvidencePolicyEvaluationStatus = "Unknown"
 )
+
+// BatchError defines model for BatchError.
+type BatchError struct {
+	// Code Error code
+	Code string `json:"code"`
+
+	// Message Error message
+	Message string `json:"message"`
+}
+
+// BatchMetadataRequest defines model for BatchMetadataRequest.
+type BatchMetadataRequest struct {
+	Options *BatchOptions `json:"options,omitempty"`
+
+	// PolicyEngineNames Array of policy engine names (optional, for context)
+	PolicyEngineNames *[]string `json:"policyEngineNames,omitempty"`
+
+	// PolicyRuleIds Array of policy rule IDs to retrieve metadata for
+	PolicyRuleIds []string `json:"policyRuleIds"`
+}
+
+// BatchMetadataResponse defines model for BatchMetadataResponse.
+type BatchMetadataResponse struct {
+	// Results Results for each policy rule in the batch
+	Results []BatchMetadataResult `json:"results"`
+	Summary BatchSummary          `json:"summary"`
+}
+
+// BatchMetadataResult defines model for BatchMetadataResult.
+type BatchMetadataResult struct {
+	Error *BatchError `json:"error,omitempty"`
+
+	// Index Index of the policy rule in the original batch
+	Index int `json:"index"`
+
+	// Metadata Static compliance metadata that can be cached
+	Metadata *ComplianceMetadata `json:"metadata,omitempty"`
+
+	// PolicyRuleId The policy rule ID
+	PolicyRuleId string `json:"policyRuleId"`
+}
+
+// BatchOptions defines model for BatchOptions.
+type BatchOptions struct {
+	// MaxConcurrency Maximum number of concurrent requests to process
+	MaxConcurrency *int `json:"max_concurrency,omitempty"`
+
+	// ReturnErrors Whether to include errors in the response
+	ReturnErrors *bool `json:"return_errors,omitempty"`
+
+	// TimeoutSeconds Timeout in seconds for the entire batch operation
+	TimeoutSeconds *int `json:"timeout_seconds,omitempty"`
+}
+
+// BatchSummary defines model for BatchSummary.
+type BatchSummary struct {
+	// DurationMs Total processing time in milliseconds
+	DurationMs int `json:"duration_ms"`
+
+	// Failed Number of failed requests
+	Failed int `json:"failed"`
+
+	// Success Number of successfully processed requests
+	Success int `json:"success"`
+
+	// Total Total number of requests in the batch
+	Total int `json:"total"`
+}
 
 // Compliance Compliance details from OCSF Security Control Profile.
 type Compliance struct {
@@ -58,7 +134,7 @@ type Compliance struct {
 	Risk *ComplianceRisk `json:"risk,omitempty"`
 
 	// Status Compliance status
-	Status ComplianceStatus `json:"status"`
+	Status *ComplianceStatus `json:"status,omitempty"`
 }
 
 // ComplianceEnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
@@ -93,6 +169,24 @@ type ComplianceFrameworks struct {
 	// Requirements Compliance requirement identifiers from the frameworks being evaluated
 	Requirements []string `json:"requirements"`
 }
+
+// ComplianceMetadata Static compliance metadata that can be cached
+type ComplianceMetadata struct {
+	// Control Security control information for compliance assessment
+	Control ComplianceControl `json:"control"`
+
+	// EnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
+	EnrichmentStatus ComplianceMetadataEnrichmentStatus `json:"enrichmentStatus"`
+
+	// Frameworks Compliance framework and requirement information
+	Frameworks ComplianceFrameworks `json:"frameworks"`
+
+	// Risk Compliance risk assessment information
+	Risk *ComplianceRisk `json:"risk,omitempty"`
+}
+
+// ComplianceMetadataEnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
+type ComplianceMetadataEnrichmentStatus string
 
 // ComplianceRisk Compliance risk assessment information
 type ComplianceRisk struct {
@@ -147,3 +241,6 @@ type EvidencePolicyEvaluationStatus string
 
 // PostV1EnrichJSONRequestBody defines body for PostV1Enrich for application/json ContentType.
 type PostV1EnrichJSONRequestBody = EnrichmentRequest
+
+// PostV1MetadataBatchJSONRequestBody defines body for PostV1MetadataBatch for application/json ContentType.
+type PostV1MetadataBatchJSONRequestBody = BatchMetadataRequest

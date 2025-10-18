@@ -11,7 +11,10 @@ import (
 // mapper RawEvidence into a `gemara` AssessmentPlan.
 type Mapper interface {
 	PluginName() ID
-	Map(evidence api.Evidence, scope Scope) api.Compliance
+	// GetMetadata returns static compliance metadata for a policy rule (can be cached)
+	GetMetadata(policyRuleId string, scope Scope) (*api.ComplianceMetadata, api.ComplianceMetadataEnrichmentStatus)
+	// CalculateStatus calculates the dynamic status based on current evidence
+	CalculateStatus(evidence api.Evidence) *api.ComplianceStatus
 	AddEvaluationPlan(catalogId string, plans ...layer4.AssessmentPlan)
 }
 

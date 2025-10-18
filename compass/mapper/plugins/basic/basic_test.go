@@ -29,27 +29,27 @@ func TestBasicMapper_MapWithPlans(t *testing.T) {
 	}{
 		{
 			name:           "compliance status is passed",
-			status:         api.EvidencePolicyEvaluationStatusPassed,
+			status:         api.Passed,
 			expectedStatus: api.COMPLIANT,
 		},
 		{
 			name:           "compliance status is failed",
-			status:         api.EvidencePolicyEvaluationStatusFailed,
+			status:         api.Failed,
 			expectedStatus: api.NONCOMPLIANT,
 		},
 		{
 			name:           "compliance status is not run",
-			status:         api.EvidencePolicyEvaluationStatusNotRun,
+			status:         api.NotRun,
 			expectedStatus: api.NOTAPPLICABLE,
 		},
 		{
 			name:           "compliance status is not applicable",
-			status:         api.EvidencePolicyEvaluationStatusNotApplicable,
+			status:         api.NotApplicable,
 			expectedStatus: api.NOTAPPLICABLE,
 		},
 		{
 			name:           "unmapped compliance status defaults to unknown",
-			status:         api.EvidencePolicyEvaluationStatusUnknown,
+			status:         api.Unknown,
 			expectedStatus: api.UNKNOWN,
 		},
 	}
@@ -110,14 +110,18 @@ func TestBasicMapper_MapWithPlans(t *testing.T) {
 				"test-catalog": catalog,
 			}
 
-			compliance := basicMapper.Map(evidence, scope)
+		// Test static metadata retrieval
+		metadata, enrichmentStatus := basicMapper.GetMetadata(evidence.PolicyRuleId, scope)
+		assert.NotNil(t, metadata)
+		assert.Equal(t, api.ComplianceMetadataEnrichmentStatusSuccess, enrichmentStatus)
+		assert.Equal(t, "AC-1-REQ", metadata.Control.Id)
+		assert.Equal(t, "Access Control", metadata.Control.Category)
+		assert.Equal(t, "test-catalog", metadata.Control.CatalogId)
 
-			assert.NotNil(t, compliance)
-			assert.Equal(t, tt.expectedStatus, compliance.Status)
-			assert.Equal(t, api.ComplianceEnrichmentStatusSuccess, compliance.EnrichmentStatus)
-			assert.Equal(t, "AC-1-REQ", compliance.Control.Id)
-			assert.Equal(t, "Access Control", compliance.Control.Category)
-			assert.Equal(t, "test-catalog", compliance.Control.CatalogId)
+		// Test dynamic status calculation
+		status := basicMapper.CalculateStatus(evidence)
+		assert.NotNil(t, status)
+		assert.Equal(t, tt.expectedStatus, *status)
 		})
 	}
 }
@@ -127,19 +131,23 @@ func TestBasicMapper_MapUnmapped(t *testing.T) {
 	evidence := api.Evidence{
 		PolicyEngineName:       "test-policy-engine",
 		PolicyRuleId:           "AC-1",
-		PolicyEvaluationStatus: api.EvidencePolicyEvaluationStatusFailed,
+		PolicyEvaluationStatus: api.Failed,
 		Timestamp:              time.Now(),
 	}
 	scope := make(mapper.Scope)
 
-	compliance := basicMapper.Map(evidence, scope)
+	// Test static metadata retrieval for unmapped policy
+	metadata, enrichmentStatus := basicMapper.GetMetadata(evidence.PolicyRuleId, scope)
+	assert.NotNil(t, metadata)
+	assert.Equal(t, api.ComplianceMetadataEnrichmentStatusUnmapped, enrichmentStatus)
+	assert.Equal(t, "AC-1", metadata.Control.Id)
+	assert.Equal(t, "Unknown", metadata.Control.Category)
+	assert.Equal(t, "unknown", metadata.Control.CatalogId)
 
-	// For basic mapper without plans, we expect an empty compliance object
-	// with only enrichment status set to "unmapped"
-	assert.NotNil(t, compliance)
-	assert.Equal(t, api.ComplianceEnrichmentStatusUnmapped, compliance.EnrichmentStatus)
-	// Status should be empty when no plans are configured
-	assert.Equal(t, api.ComplianceStatus(""), compliance.Status)
+	// Test dynamic status calculation still works
+	status := basicMapper.CalculateStatus(evidence)
+	assert.NotNil(t, status)
+	assert.Equal(t, api.NONCOMPLIANT, *status)
 }
 
 func TestBasicMapper_AddEvaluationPlan(t *testing.T) {

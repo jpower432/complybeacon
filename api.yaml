@@ -36,8 +36,164 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/metadata/batch:
+    post:
+      summary: Batch retrieve static compliance metadata for multiple policy rules
+      description: |
+        Accepts multiple policy rule IDs and returns static compliance metadata for each.
+        This endpoint is optimized for high-throughput scenarios where multiple policy rules
+        need metadata retrieval simultaneously. Only returns static data (control, frameworks, risk).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchMetadataRequest'
+      responses:
+        '200':
+          description: Successfully retrieved batch metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchMetadataResponse'
+        '400':
+          description: Invalid batch request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
+    ComplianceMetadata:
+      type: object
+      description: "Static compliance metadata that can be cached"
+      properties:
+        control:
+          $ref: '#/components/schemas/ComplianceControl'
+        frameworks:
+          $ref: '#/components/schemas/ComplianceFrameworks'
+        risk:
+          $ref: '#/components/schemas/ComplianceRisk'
+        enrichmentStatus:
+          type: string
+          description: "Status of the compliance enrichment process: success, unmapped, partial, or unknown."
+          enum: [ "success", "unmapped", "partial", "unknown" ]
+          example: "success"
+      required:
+        - control
+        - frameworks
+        - enrichmentStatus
+
+    BatchMetadataRequest:
+      type: object
+      properties:
+        policyRuleIds:
+          type: array
+          items:
+            type: string
+          description: Array of policy rule IDs to retrieve metadata for
+        policyEngineNames:
+          type: array
+          items:
+            type: string
+          description: Array of policy engine names (optional, for context)
+        options:
+          $ref: '#/components/schemas/BatchOptions'
+      required:
+        - policyRuleIds
+
+    BatchOptions:
+      type: object
+      properties:
+        max_concurrency:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+          description: Maximum number of concurrent requests to process
+        timeout_seconds:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 30
+          description: Timeout in seconds for the entire batch operation
+        return_errors:
+          type: boolean
+          default: true
+          description: Whether to include errors in the response
+
+    BatchMetadataResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchMetadataResult'
+          description: Results for each policy rule in the batch
+        summary:
+          $ref: '#/components/schemas/BatchSummary'
+      required:
+        - results
+        - summary
+
+    BatchMetadataResult:
+      type: object
+      properties:
+        index:
+          type: integer
+          description: Index of the policy rule in the original batch
+        policyRuleId:
+          type: string
+          description: The policy rule ID
+        metadata:
+          $ref: '#/components/schemas/ComplianceMetadata'
+        error:
+          $ref: '#/components/schemas/BatchError'
+      required:
+        - index
+        - policyRuleId
+
+    BatchError:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message
+      required:
+        - code
+        - message
+
+    BatchSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of requests in the batch
+        success:
+          type: integer
+          description: Number of successfully processed requests
+        failed:
+          type: integer
+          description: Number of failed requests
+        duration_ms:
+          type: integer
+          description: Total processing time in milliseconds
+      required:
+        - total
+        - success
+        - failed
+        - duration_ms
+
     EnrichmentRequest:
       type: object
       description: Request payload for telemetry attribute enrichment
@@ -78,7 +234,7 @@ components:
         # Policy Evaluation
         policyEvaluationStatus:
           type: string
-          enum: ["Not Run", "Passed", "Failed", "Needs Review", "Not Applicable", "Unknown"]
+          enum: [ "Not Run", "Passed", "Failed", "Needs Review", "Not Applicable", "Unknown" ]
           description: Result of the policy evaluation
           example: "Failed"
         
@@ -111,17 +267,17 @@ components:
             id: "OSPS-QA-07.01"
             category: "Access Control"
             catalogId: "OSPS-B"
-            applicability: ["Production", "Staging"]
+            applicability: [ "Production", "Staging" ]
             remediationDescription: "Remove root user access and implement proper IAM policies"
           frameworks:
-            frameworks: ["NIST-800-53", "SOC-2"]
-            requirements: ["AC-1", "CC6.1"]
+            frameworks: [ "NIST-800-53", "SOC-2" ]
+            requirements: [ "AC-1", "CC6.1" ]
           risk:
             level: "High"
           status: "NON_COMPLIANT"
           enrichmentStatus: "success"
 
-# Inspired by: https://schema.ocsf.io/1.5.0/objects/compliance
+    # Inspired by: https://schema.ocsf.io/1.5.0/objects/compliance
     Compliance:
       type: object
       title: "Compliance"
@@ -146,13 +302,12 @@ components:
         enrichmentStatus:
           type: string
           description: "Status of the compliance enrichment process: success, unmapped, partial, or unknown."
-          enum: ["success", "unmapped", "partial", "unknown"]
+          enum: [ "success", "unmapped", "partial", "unknown" ]
           example: "success"
       additionalProperties: false
       required:
         - control
         - frameworks
-        - status
         - enrichmentStatus
 
     # Compliance Control Schema
@@ -177,7 +332,7 @@ components:
           items:
             type: string
           description: Environments or contexts where this control applies
-          example: ["Production", "Staging"]
+          example: [ "Production", "Staging" ]
         remediationDescription:
           type: string
           description: Description of the recommended remediation strategy for this control
@@ -197,13 +352,13 @@ components:
           items:
             type: string
           description: Regulatory or industry standards being evaluated for compliance
-          example: ["NIST-800-53", "SOC-2"]
+          example: [ "NIST-800-53", "SOC-2" ]
         requirements:
           type: array
           items:
             type: string
           description: Compliance requirement identifiers from the frameworks being evaluated
-          example: ["AC-1", "CC6.1"]
+          example: [ "AC-1", "CC6.1" ]
       required:
         - frameworks
         - requirements
@@ -215,7 +370,7 @@ components:
       properties:
         level:
           type: string
-          enum: ["Critical", "High", "Medium", "Low", "Informational"]
+          enum: [ "Critical", "High", "Medium", "Low", "Informational" ]
           description: Risk level associated with non-compliance
           example: "High"
 

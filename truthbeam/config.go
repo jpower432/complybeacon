@@ -10,6 +10,7 @@ import (
 // Config defines configuration for the truthbeam processor.
 type Config struct {
 	ClientConfig confighttp.ClientConfig `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct.
+	Prefetch     []string                `mapstructure:"prefetch"`
 }
 
 var _ component.Config = (*Config)(nil)
