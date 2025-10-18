@@ -24,11 +24,6 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 		missingAttrs = append(missingAttrs, POLICY_RULE_ID)
 	}
 
-	policyEnforcementAction, ok := attrs.Get(POLICY_ENFORCEMENT_ACTION)
-	if !ok {
-		missingAttrs = append(missingAttrs, POLICY_ENFORCEMENT_ACTION)
-	}
-
 	policySourceVal, ok := attrs.Get(POLICY_ENGINE_NAME)
 	if !ok {
 		missingAttrs = append(missingAttrs, POLICY_ENGINE_NAME)
@@ -45,11 +40,10 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 
 	enrichReq := EnrichmentRequest{
 		Evidence: Evidence{
-			Timestamp:               logRecord.Timestamp().AsTime(),
-			PolicyEngineName:        policySourceVal.Str(),
-			PolicyRuleId:            policyRuleIDVal.Str(),
-			PolicyEvaluationStatus:  EvidencePolicyEvaluationStatus(policyEvalStatusVal.Str()),
-			PolicyEnforcementAction: EvidencePolicyEnforcementAction(policyEnforcementAction.Str()),
+			Timestamp:              logRecord.Timestamp().AsTime(),
+			PolicyEngineName:       policySourceVal.Str(),
+			PolicyRuleId:           policyRuleIDVal.Str(),
+			PolicyEvaluationStatus: EvidencePolicyEvaluationStatus(policyEvalStatusVal.Str()),
 		},
 	}
 
