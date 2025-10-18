@@ -35,7 +35,7 @@ func (s *Service) PostV1Enrich(c *gin.Context) {
 		return
 	}
 
-	mapperPlugin, ok := s.set[mapper.ID(req.Evidence.Source)]
+	mapperPlugin, ok := s.set[mapper.ID(req.Evidence.PolicyEngineName)]
 	if !ok {
 		// Use fallback
 		mapperPlugin = basic.NewBasicMapper()
@@ -56,10 +56,9 @@ func sendCompassError(c *gin.Context, code int32, message string) {
 }
 
 // Enrich the raw evidence with risk attributes based on `gemara` semantics.
-func enrich(rawEnv api.RawEvidence, attributeMapper mapper.Mapper, scope mapper.Scope) api.EnrichmentResponse {
-	compliance, status := attributeMapper.Map(rawEnv, scope)
+func enrich(rawEnv api.Evidence, attributeMapper mapper.Mapper, scope mapper.Scope) api.EnrichmentResponse {
+	compliance := attributeMapper.Map(rawEnv, scope)
 	return api.EnrichmentResponse{
 		Compliance: compliance,
-		Status:     status,
 	}
 }

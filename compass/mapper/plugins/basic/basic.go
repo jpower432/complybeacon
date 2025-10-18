@@ -1,8 +1,6 @@
 package basic
 
 import (
-	"strings"
-
 	"github.com/ossf/gemara/layer2"
 	"github.com/ossf/gemara/layer4"
 
@@ -55,10 +53,10 @@ func (m *Mapper) PluginName() mapper.ID {
 	return ID
 }
 
-func (m *Mapper) Map(evidence api.RawEvidence, scope mapper.Scope) (api.Compliance, api.Status) {
+func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 
 	// Map decision to status
-	status, statusId := m.mapDecision(evidence.Decision)
+	status, statusId := m.mapDecision(evidence.PolicyEvaluationStatus)
 
 	// Process each catalog
 	for catalogId, plans := range m.plans {
@@ -74,38 +72,45 @@ func (m *Mapper) Map(evidence api.RawEvidence, scope mapper.Scope) (api.Complian
 		controlData := m.buildControlDataMap(catalog)
 
 		// Look up policy in procedures
-		if procedureInfo, ok := proceduresById[evidence.PolicyId]; ok {
+		if procedureInfo, ok := proceduresById[evidence.PolicyRuleId]; ok {
 
 			// Look up control data
 			if ctrlData, ok := controlData[procedureInfo.ControlID]; ok {
 				compliance := api.Compliance{
-					Catalog:      catalogId,
-					Control:      procedureInfo.RequirementID,
-					Requirements: m.extractRequirements(ctrlData.Mappings),
-					Standards:    m.extractStandards(ctrlData.Mappings),
-					Category:     ctrlData.Category,
-					Remediation:  &procedureInfo.Documentation,
+					Control: api.ComplianceControl{
+						Id:                     procedureInfo.RequirementID,
+						Category:               ctrlData.Category,
+						RemediationDescription: &procedureInfo.Documentation,
+					},
+					Frameworks: api.ComplianceFrameworks{
+						Requirements: m.extractRequirements(ctrlData.Mappings),
+						Frameworks:   m.extractStandards(ctrlData.Mappings),
+					},
+					Status: api.Status{
+						Title: status,
+						Id:    &statusId,
+					},
 				}
 
-				return compliance, api.Status{Title: status, Id: &statusId}
+				return compliance
 			}
 		}
 	}
 
-	return api.Compliance{}, api.Status{Title: status, Id: &statusId}
+	return api.Compliance{}
 }
 
 // mapDecision maps a decision string to status and status ID.
-func (m *Mapper) mapDecision(decision string) (api.StatusTitle, api.StatusId) {
-	switch strings.ToLower(decision) {
-	case "pass", "success":
-		return api.Pass, api.N1
-	case "fail", "failure":
-		return api.Fail, api.N2
-	case "other", "warning", "unknown":
-		return api.Warning, api.N3
+func (m *Mapper) mapDecision(status api.EvidencePolicyEvaluationStatus) (api.StatusTitle, api.StatusId) {
+	switch status {
+	case api.Passed:
+		return api.COMPLIANT, api.N0
+	case api.Failed:
+		return api.NONCOMPLIANT, api.N1
+	case api.NotRun, api.NotApplicable:
+		return api.NOTAPPLICABLE, api.N3
 	default:
-		return api.Warning, api.N3
+		return api.UNKNOWN, api.N99
 	}
 }
 
