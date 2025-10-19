@@ -5,7 +5,7 @@
 
 ## Policy Engine Attributes
 
-Attributes emitted by policy engines (OPA, Gatekeeper, etc.) during policy evaluation and enforcement. Maps to GEMARA Layer 4 (Evaluation) and Layer 5 (Enforcement) for Policy-as-Code workflows.
+Attributes emitted by policy engines (OPA, Gatekeeper, etc.) during policy evaluation and enforcement. Maps to GEMARA Layer 4 (Evaluation) for Policy-as-Code workflows.
 
 | Attribute | Type | Description | Examples | Stability |
 |---|---|---|---|---|
@@ -15,8 +15,8 @@ Attributes emitted by policy engines (OPA, Gatekeeper, etc.) during policy evalu
 | <a id="policy-evaluation-result" href="#policy-evaluation-result">`policy.evaluation.result`</a> | string | Result of the policy evaluation: Not Run, Passed, Failed, Needs Review, Not Applicable, or Unknown. | `Not Run`; `Passed`; `Failed`; `Needs Review`; `Not Applicable`; `Unknown` | ![Development](https://img.shields.io/badge/-development-blue) |
 | <a id="policy-rule-id" href="#policy-rule-id">`policy.rule.id`</a> | string | Unique identifier for the policy rule being evaluated or enforced. | `deny-root-user`; `require-encryption`; `check-labels` | ![Development](https://img.shields.io/badge/-development-blue) |
 | <a id="policy-rule-name" href="#policy-rule-name">`policy.rule.name`</a> | string | Human-readable name of the policy rule. | `Deny Root User`; `Require Encryption`; `Check Resource Labels` | ![Development](https://img.shields.io/badge/-development-blue) |
+| <a id="policy-rule-uri" href="#policy-rule-uri">`policy.rule.uri`</a> | string | Source control URL and version of the policy-as-code file for auditability. | `github.com/org/policy-repo/b8a7c2e`; `gitlab.com/company/policies@v1.2.3` | ![Development](https://img.shields.io/badge/-development-blue) |
 | <a id="policy-target-environment" href="#policy-target-environment">`policy.target.environment`</a> | string | Environment where the target resource or entity exists. | `production`; `staging`; `development` | ![Development](https://img.shields.io/badge/-development-blue) |
 | <a id="policy-target-id" href="#policy-target-id">`policy.target.id`</a> | string | Unique identifier for the resource or entity being evaluated or enforced against. | `deployment-123`; `resource-456`; `user-789` | ![Development](https://img.shields.io/badge/-development-blue) |
 | <a id="policy-target-name" href="#policy-target-name">`policy.target.name`</a> | string | Human-readable name of the resource or entity being evaluated or enforced against. | `frontend-deployment`; `s3-bucket-secrets`; `admin-user` | ![Development](https://img.shields.io/badge/-development-blue) |
 | <a id="policy-target-type" href="#policy-target-type">`policy.target.type`</a> | string | Type of the resource or entity being evaluated or enforced against. | `deployment`; `resource`; `user`; `configuration` | ![Development](https://img.shields.io/badge/-development-blue) |
-| <a id="policy-uri" href="#policy-uri">`policy.uri`</a> | string | Source control URL and version of the policy-as-code file for auditability. | `github.com/org/policy-repo/b8a7c2e`; `gitlab.com/company/policies@v1.2.3` | ![Development](https://img.shields.io/badge/-development-blue) |

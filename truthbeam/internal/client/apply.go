@@ -60,7 +60,7 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 	standards := attrs.PutEmptySlice(COMPLIANCE_FRAMEWORKS)
 
 	if enrichRes.Compliance.Control.RemediationDescription != nil {
-		attrs.PutStr(COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION, *enrichRes.Compliance.Control.RemediationDescription)
+		attrs.PutStr(COMPLIANCE_REMEDIATION_DESCRIPTION, *enrichRes.Compliance.Control.RemediationDescription)
 	}
 
 	for _, req := range enrichRes.Compliance.Frameworks.Requirements {
