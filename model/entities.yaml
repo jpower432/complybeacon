@@ -10,7 +10,7 @@ groups:
       - ref: policy.engine.version
       - ref: policy.rule.id
       - ref: policy.rule.name
-      - ref: policy.uri
+      - ref: policy.rule.uri
       
       # Policy Evaluation
       - ref: policy.evaluation.result
@@ -27,7 +27,6 @@ groups:
       - ref: compliance.control.category
       - ref: compliance.control.catalog.id
       - ref: compliance.control.applicability
-      - ref: compliance.control.remediation.description
       
       # Compliance Frameworks
       - ref: compliance.frameworks
@@ -40,8 +39,7 @@ groups:
       # Compliance Remediation/Enforcement
       - ref: compliance.remediation.action
       - ref: compliance.remediation.status
-
-      #  Exceptions
-      - ref: compliance.exception.id
-      - ref: compliance.exception.active
+      - ref: compliance.remediation.description
+      - ref: compliance.remediation.exception.id
+      - ref: compliance.remediation.exception.active
 

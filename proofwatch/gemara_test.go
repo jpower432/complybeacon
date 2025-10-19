@@ -35,7 +35,7 @@ func TestGemaraEvidenceAttributes(t *testing.T) {
 
 	// Optional attributes
 	assert.Equal(t, "Test assessment message", attrMap[POLICY_EVALUATION_MESSAGE])
-	assert.Equal(t, "Test recommendation", attrMap[COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION])
+	assert.Equal(t, "Test recommendation", attrMap[COMPLIANCE_REMEDIATION_DESCRIPTION])
 }
 
 func TestGemaraEvidenceTimestamp(t *testing.T) {
@@ -117,7 +117,7 @@ func TestGemaraEvidenceAttributesEmptyFields(t *testing.T) {
 
 	// Optional omitted
 	assert.NotContains(t, attrMap, POLICY_EVALUATION_MESSAGE)
-	assert.NotContains(t, attrMap, COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION)
+	assert.NotContains(t, attrMap, COMPLIANCE_REMEDIATION_DESCRIPTION)
 }
 
 func TestGemaraEvidenceAttributesDifferentResults(t *testing.T) {
