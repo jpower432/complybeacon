@@ -36,7 +36,7 @@ func (g GemaraEvidence) Attributes() []attribute.KeyValue {
 	}
 
 	if g.Recommendation != "" {
-		attrs = append(attrs, attribute.String(COMPLIANCE_CONTROL_REMEDIATION_DESCRIPTION, g.Recommendation))
+		attrs = append(attrs, attribute.String(COMPLIANCE_REMEDIATION_DESCRIPTION, g.Recommendation))
 	}
 
 	return attrs
