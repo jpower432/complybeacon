@@ -32,3 +32,6 @@ providers:
 
 connectors:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/connector/signaltometricsconnector v0.134.0
+
+replaces:
+  - github.com/complytime/complybeacon/truthbeam => github.com/jpower432/complybeacon/truthbeam 3688d789f6c26dc12d9e696396f2cf331fc1e7b4

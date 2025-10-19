@@ -81,6 +81,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 						Id:                     procedureInfo.RequirementID,
 						Category:               ctrlData.Category,
 						RemediationDescription: &procedureInfo.Documentation,
+						CatalogId:              catalogId,
 					},
 					Frameworks: api.ComplianceFrameworks{
 						Requirements: m.extractRequirements(ctrlData.Mappings),
