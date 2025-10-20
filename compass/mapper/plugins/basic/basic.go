@@ -1,6 +1,8 @@
 package basic
 
 import (
+	"log"
+
 	"github.com/ossf/gemara/layer2"
 	"github.com/ossf/gemara/layer4"
 
@@ -58,10 +60,16 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 	// Map decision to status
 	status, statusId := m.mapDecision(evidence.PolicyEvaluationStatus)
 
+	// Track enrichment status
+	enrichmentStatus := "unmapped"
+	var failureReasons []string
+
 	// Process each catalog
 	for catalogId, plans := range m.plans {
 		catalog, ok := scope[catalogId]
 		if !ok {
+			log.Printf("WARNING: Catalog %s not found in scope for policy %s", catalogId, evidence.PolicyRuleId)
+			failureReasons = append(failureReasons, "catalog not found")
 			continue
 		}
 
@@ -91,24 +99,38 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 						Title: status,
 						Id:    &statusId,
 					},
+					EnrichmentStatus: "success",
 				}
 
 				return compliance
+			} else {
+				log.Printf("WARNING: Control data not found for control ID %s in catalog %s for policy %s", procedureInfo.ControlID, catalogId, evidence.PolicyRuleId)
+				failureReasons = append(failureReasons, "control data not found")
 			}
+		} else {
+			log.Printf("WARNING: Policy rule %s not found in procedures for catalog %s", evidence.PolicyRuleId, catalogId)
+			failureReasons = append(failureReasons, "policy rule not found")
 		}
 	}
 
-	return api.Compliance{}
+	// Log final failure if no mapping was found
+	if len(failureReasons) > 0 {
+		log.Printf("WARNING: Failed to map policy %s from engine %s. Reasons: %v", evidence.PolicyRuleId, evidence.PolicyEngineName, failureReasons)
+	}
+
+	return api.Compliance{
+		EnrichmentStatus: api.ComplianceEnrichmentStatus(enrichmentStatus),
+	}
 }
 
 // mapDecision maps a decision string to status and status ID.
 func (m *Mapper) mapDecision(status api.EvidencePolicyEvaluationStatus) (api.StatusTitle, api.StatusId) {
 	switch status {
-	case api.Passed:
+	case api.EvidencePolicyEvaluationStatusPassed:
 		return api.COMPLIANT, api.N0
-	case api.Failed:
+	case api.EvidencePolicyEvaluationStatusFailed:
 		return api.NONCOMPLIANT, api.N1
-	case api.NotRun, api.NotApplicable:
+	case api.EvidencePolicyEvaluationStatusNotRun, api.EvidencePolicyEvaluationStatusNotApplicable:
 		return api.NOTAPPLICABLE, api.N3
 	default:
 		return api.UNKNOWN, api.N99

@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+// Defines values for ComplianceEnrichmentStatus.
+const (
+	ComplianceEnrichmentStatusPartial  ComplianceEnrichmentStatus = "partial"
+	ComplianceEnrichmentStatusSuccess  ComplianceEnrichmentStatus = "success"
+	ComplianceEnrichmentStatusUnknown  ComplianceEnrichmentStatus = "unknown"
+	ComplianceEnrichmentStatusUnmapped ComplianceEnrichmentStatus = "unmapped"
+)
+
 // Defines values for ComplianceRiskLevel.
 const (
 	Critical      ComplianceRiskLevel = "Critical"
@@ -19,12 +27,12 @@ const (
 
 // Defines values for EvidencePolicyEvaluationStatus.
 const (
-	Failed        EvidencePolicyEvaluationStatus = "Failed"
-	NeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
-	NotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
-	NotRun        EvidencePolicyEvaluationStatus = "Not Run"
-	Passed        EvidencePolicyEvaluationStatus = "Passed"
-	Unknown       EvidencePolicyEvaluationStatus = "Unknown"
+	EvidencePolicyEvaluationStatusFailed        EvidencePolicyEvaluationStatus = "Failed"
+	EvidencePolicyEvaluationStatusNeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
+	EvidencePolicyEvaluationStatusNotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
+	EvidencePolicyEvaluationStatusNotRun        EvidencePolicyEvaluationStatus = "Not Run"
+	EvidencePolicyEvaluationStatusPassed        EvidencePolicyEvaluationStatus = "Passed"
+	EvidencePolicyEvaluationStatusUnknown       EvidencePolicyEvaluationStatus = "Unknown"
 )
 
 // Defines values for StatusId.
@@ -50,6 +58,9 @@ type Compliance struct {
 	// Control Security control information for compliance assessment
 	Control ComplianceControl `json:"control"`
 
+	// EnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
+	EnrichmentStatus ComplianceEnrichmentStatus `json:"enrichmentStatus"`
+
 	// Frameworks Compliance framework and requirement information
 	Frameworks ComplianceFrameworks `json:"frameworks"`
 
@@ -59,6 +70,9 @@ type Compliance struct {
 	// Status Compliance Result
 	Status Status `json:"status"`
 }
+
+// ComplianceEnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
+type ComplianceEnrichmentStatus string
 
 // ComplianceControl Security control information for compliance assessment
 type ComplianceControl struct {

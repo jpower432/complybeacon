@@ -2,6 +2,9 @@
 
 package client
 
+// Unique identifier for the compliance assessment run or session. Used to group findings from the same assessment execution
+const COMPLIANCE_ASSESSMENT_ID = "compliance.assessment.id"
+
 // Environments or contexts where this control applies
 const COMPLIANCE_CONTROL_APPLICABILITY = "compliance.control.applicability"
 
@@ -13,6 +16,9 @@ const COMPLIANCE_CONTROL_CATEGORY = "compliance.control.category"
 
 // Unique identifier for the security control and assessment requirement being assessed
 const COMPLIANCE_CONTROL_ID = "compliance.control.id"
+
+// Status of the compliance enrichment process: success, unmapped, partial, or unknown
+const COMPLIANCE_ENRICHMENT_STATUS = "compliance.enrichment.status"
 
 // Regulatory or industry standards being evaluated for compliance
 const COMPLIANCE_FRAMEWORKS = "compliance.frameworks"
@@ -73,4 +79,3 @@ const POLICY_TARGET_NAME = "policy.target.name"
 
 // Type of the resource or entity being evaluated or enforced against
 const POLICY_TARGET_TYPE = "policy.target.type"
-

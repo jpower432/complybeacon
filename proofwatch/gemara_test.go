@@ -32,6 +32,7 @@ func TestGemaraEvidenceAttributes(t *testing.T) {
 	assert.Equal(t, "test-catalog-id", attrMap[COMPLIANCE_CONTROL_CATALOG_ID])
 	assert.Equal(t, "Passed", attrMap[POLICY_EVALUATION_RESULT])
 	assert.Equal(t, "test-procedure-id", attrMap[POLICY_RULE_ID])
+	assert.Equal(t, "test-audit-id", attrMap[COMPLIANCE_ASSESSMENT_ID])
 
 	// Optional attributes
 	assert.Equal(t, "Test assessment message", attrMap[POLICY_EVALUATION_MESSAGE])

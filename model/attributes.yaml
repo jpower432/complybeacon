@@ -191,3 +191,18 @@ groups:
             "This is a short description of the remediation strategy for this control.",
           ]
         requirement_level: opt_in
+      - id: compliance.assessment.id
+        type: string
+        stability: development
+        brief: >
+          Unique identifier for the compliance assessment run or session.
+          Used to group findings from the same assessment execution.
+        examples: [ "assessment-2024-001", "scan-run-abc123", "compliance-check-xyz789" ]
+        requirement_level: recommended
+      - id: compliance.enrichment.status
+        type: string
+        stability: development
+        brief: >
+          Status of the compliance enrichment process: success, unmapped, partial, or unknown.
+        examples: ["success", "unmapped", "partial", "unknown"]
+        requirement_level: recommended
