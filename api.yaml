@@ -131,11 +131,17 @@ components:
           $ref: '#/components/schemas/ComplianceRisk'
         status:
           $ref: '#/components/schemas/Status'
+        enrichmentStatus:
+          type: string
+          description: "Status of the compliance enrichment process: success, unmapped, partial, or unknown."
+          enum: ["success", "unmapped", "partial", "unknown"]
+          example: "success"
       additionalProperties: false
       required:
         - control
         - frameworks
         - status
+        - enrichmentStatus
 
     # Compliance Control Schema
     ComplianceControl:
