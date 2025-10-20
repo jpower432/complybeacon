@@ -43,3 +43,5 @@ groups:
       - ref: compliance.remediation.exception.id
       - ref: compliance.remediation.exception.active
 
+      - ref: compliance.assessment.id
+

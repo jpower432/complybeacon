@@ -328,3 +328,41 @@ func createTestEvidence() OCSFEvidence {
 		},
 	}
 }
+
+func TestOCSFEvidenceTargetAttributes(t *testing.T) {
+	scanUid := "scan-123"
+	scanType := "vulnerability"
+	policyName := "test-policy"
+	productName := "test-product"
+	status := "success"
+
+	evidence := OCSFEvidence{
+		ScanActivity: ocsf.ScanActivity{
+			Time: time.Now().UnixMilli(),
+			Metadata: ocsf.Metadata{
+				Product: ocsf.Product{
+					Name: &productName,
+				},
+			},
+			Status: &status,
+			Scan: ocsf.Scan{
+				Uid:  &scanUid,
+				Type: &scanType,
+			},
+		},
+		Policy: ocsf.Policy{
+			Uid:  &policyName,
+			Name: &policyName,
+		},
+	}
+
+	attrs := evidence.Attributes()
+	attrMap := make(map[string]interface{})
+	for _, attr := range attrs {
+		attrMap[string(attr.Key)] = attr.Value.AsInterface()
+	}
+
+	// Verify target attributes are present
+	assert.Equal(t, scanUid, attrMap[POLICY_TARGET_ID])
+	assert.Equal(t, scanType, attrMap[POLICY_TARGET_TYPE])
+}
