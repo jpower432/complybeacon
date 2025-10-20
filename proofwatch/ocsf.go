@@ -56,6 +56,14 @@ func (o OCSFEvidence) Attributes() []attribute.KeyValue {
 		attribute.String(COMPLIANCE_REMEDIATION_STATUS, mapEnforcementStatus(o.ActionID, o.DispositionID)),
 	}
 
+	// Add target information if available
+	if o.Scan.Uid != nil && *o.Scan.Uid != "" {
+		attrs = append(attrs, attribute.String(POLICY_TARGET_ID, *o.Scan.Uid))
+	}
+	if o.Scan.Type != nil && *o.Scan.Type != "" {
+		attrs = append(attrs, attribute.String(POLICY_TARGET_TYPE, *o.Scan.Type))
+	}
+
 	return attrs
 }
 

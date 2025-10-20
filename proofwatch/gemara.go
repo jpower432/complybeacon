@@ -29,6 +29,7 @@ func (g GemaraEvidence) Attributes() []attribute.KeyValue {
 		attribute.String(COMPLIANCE_CONTROL_CATALOG_ID, g.Requirement.ReferenceId),
 		attribute.String(POLICY_EVALUATION_RESULT, g.Result.String()),
 		attribute.String(POLICY_RULE_ID, g.Procedure.EntryId),
+		attribute.String(COMPLIANCE_ASSESSMENT_ID, g.Id),
 	}
 
 	if g.Message != "" {
