@@ -75,10 +75,7 @@ func TestProcessLogs(t *testing.T) {
 					Requirements: []string{"req-1", "req-2"},
 					Frameworks:   []string{"NIST-800-53", "ISO-27001"},
 				},
-				Status: client.Status{
-					Id:    statusIdPtr(1),
-					Title: "Pass",
-				},
+				Status:           "Pass",
 				EnrichmentStatus: client.ComplianceEnrichmentStatusSuccess,
 			},
 		}
@@ -177,10 +174,7 @@ func TestProcessLogsWithMixedValidAndInvalidRecords(t *testing.T) {
 						Requirements: []string{"req-1", "req-2"},
 						Frameworks:   []string{"NIST-800-53"},
 					},
-					Status: client.Status{
-						Id:    statusIdPtr(1),
-						Title: "Pass",
-					},
+					Status:           "Pass",
 					EnrichmentStatus: client.ComplianceEnrichmentStatusSuccess,
 				},
 			}
@@ -281,9 +275,4 @@ func setRequiredAttributes(logs plog.Logs) {
 
 func stringPtr(s string) *string {
 	return &s
-}
-
-func statusIdPtr(id int) *client.StatusId {
-	statusId := client.StatusId(id)
-	return &statusId
 }
