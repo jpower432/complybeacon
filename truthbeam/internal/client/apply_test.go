@@ -49,10 +49,7 @@ func TestApplyAttributes(t *testing.T) {
 					Requirements: []string{"req-1", "req-2"},
 					Frameworks:   []string{"NIST-800-53", "ISO-27001"},
 				},
-				Status: Status{
-					Id:    statusIdPtr(1),
-					Title: "Pass",
-				},
+				Status:           "Pass",
 				EnrichmentStatus: ComplianceEnrichmentStatusSuccess,
 			},
 		}
@@ -191,7 +188,7 @@ func TestApplyAttributes_ServerResponses(t *testing.T) {
 				response := EnrichmentResponse{
 					Compliance: Compliance{
 						EnrichmentStatus: ComplianceEnrichmentStatusUnknown,
-						Status:           Status{},
+						Status:           "",
 						Control:          ComplianceControl{},
 						Frameworks:       ComplianceFrameworks{},
 					},
@@ -223,7 +220,7 @@ func TestApplyAttributes_ServerResponses(t *testing.T) {
 							Requirements: []string{"req-1"},
 							Frameworks:   []string{"NIST-800-53"},
 						},
-						Status:           Status{Id: statusIdPtr(1), Title: "Pass"},
+						Status:           "Pass",
 						EnrichmentStatus: ComplianceEnrichmentStatusSuccess,
 					},
 				})
@@ -272,11 +269,6 @@ func assertAttributesEqual(t *testing.T, attrs map[string]interface{}, expected 
 // Helper functions
 func stringPtr(s string) *string {
 	return &s
-}
-
-func statusIdPtr(id int) *StatusId {
-	statusId := StatusId(id)
-	return &statusId
 }
 
 // createTestLogRecord is a helper function for easy test setup

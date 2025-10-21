@@ -23,6 +23,15 @@ const (
 	ComplianceEnrichmentStatusUnmapped ComplianceEnrichmentStatus = "unmapped"
 )
 
+// Defines values for ComplianceStatus.
+const (
+	COMPLIANT     ComplianceStatus = "COMPLIANT"
+	EXEMPT        ComplianceStatus = "EXEMPT"
+	NONCOMPLIANT  ComplianceStatus = "NON_COMPLIANT"
+	NOTAPPLICABLE ComplianceStatus = "NOT_APPLICABLE"
+	UNKNOWN       ComplianceStatus = "UNKNOWN"
+)
+
 // Defines values for ComplianceRiskLevel.
 const (
 	Critical      ComplianceRiskLevel = "Critical"
@@ -42,24 +51,6 @@ const (
 	EvidencePolicyEvaluationStatusUnknown       EvidencePolicyEvaluationStatus = "Unknown"
 )
 
-// Defines values for StatusId.
-const (
-	N0  StatusId = 0
-	N1  StatusId = 1
-	N2  StatusId = 2
-	N3  StatusId = 3
-	N99 StatusId = 99
-)
-
-// Defines values for StatusTitle.
-const (
-	COMPLIANT     StatusTitle = "COMPLIANT"
-	EXEMPT        StatusTitle = "EXEMPT"
-	NONCOMPLIANT  StatusTitle = "NON_COMPLIANT"
-	NOTAPPLICABLE StatusTitle = "NOT_APPLICABLE"
-	UNKNOWN       StatusTitle = "UNKNOWN"
-)
-
 // Compliance Compliance details from OCSF Security Control Profile.
 type Compliance struct {
 	// Control Security control information for compliance assessment
@@ -74,12 +65,15 @@ type Compliance struct {
 	// Risk Compliance risk assessment information
 	Risk *ComplianceRisk `json:"risk,omitempty"`
 
-	// Status Compliance Result
-	Status Status `json:"status"`
+	// Status Compliance status
+	Status ComplianceStatus `json:"status"`
 }
 
 // ComplianceEnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
 type ComplianceEnrichmentStatus string
+
+// ComplianceStatus Compliance status
+type ComplianceStatus string
 
 // ComplianceControl Security control information for compliance assessment
 type ComplianceControl struct {
@@ -117,7 +111,7 @@ type ComplianceRisk struct {
 // ComplianceRiskLevel Risk level associated with non-compliance
 type ComplianceRiskLevel string
 
-// EnrichmentRequest defines model for EnrichmentRequest.
+// EnrichmentRequest Request payload for telemetry attribute enrichment
 type EnrichmentRequest struct {
 	// Evidence Complete evidence log from policy engines and compliance assessment tools
 	Evidence Evidence `json:"evidence"`
@@ -131,7 +125,7 @@ type EnrichmentResponse struct {
 
 // Error defines model for Error.
 type Error struct {
-	// Code Error code
+	// Code HTTP status code
 	Code int32 `json:"code"`
 
 	// Message Error message
@@ -150,7 +144,7 @@ type Evidence struct {
 	PolicyRuleId string `json:"policyRuleId"`
 
 	// RawData Raw JSON output from the policy engine
-	RawData json.RawMessage `json:"rawData,omitempty"`
+	RawData *map[string]interface{} `json:"rawData,omitempty"`
 
 	// Timestamp The time when the raw evidence was generated
 	Timestamp time.Time `json:"timestamp"`
@@ -158,21 +152,6 @@ type Evidence struct {
 
 // EvidencePolicyEvaluationStatus Result of the policy evaluation
 type EvidencePolicyEvaluationStatus string
-
-// Status Compliance Result
-type Status struct {
-	// Id Compliance status ID (0=COMPLIANT, 1=NON_COMPLIANT, 2=EXEMPT, 3=NOT_APPLICABLE, 99=UNKNOWN).
-	Id *StatusId `json:"id,omitempty"`
-
-	// Title Compliance status.
-	Title StatusTitle `json:"title"`
-}
-
-// StatusId Compliance status ID (0=COMPLIANT, 1=NON_COMPLIANT, 2=EXEMPT, 3=NOT_APPLICABLE, 99=UNKNOWN).
-type StatusId int
-
-// StatusTitle Compliance status.
-type StatusTitle string
 
 // PostV1EnrichJSONRequestBody defines body for PostV1Enrich for application/json ContentType.
 type PostV1EnrichJSONRequestBody = EnrichmentRequest

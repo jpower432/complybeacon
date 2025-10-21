@@ -57,7 +57,7 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 
 	// Only add compliance attributes if enrichment was successful
 	if enrichRes.Compliance.EnrichmentStatus == ComplianceEnrichmentStatusSuccess {
-		attrs.PutStr(COMPLIANCE_STATUS, string(enrichRes.Compliance.Status.Title))
+		attrs.PutStr(COMPLIANCE_STATUS, string(enrichRes.Compliance.Status))
 		attrs.PutStr(COMPLIANCE_CONTROL_ID, enrichRes.Compliance.Control.Id)
 		attrs.PutStr(COMPLIANCE_CONTROL_CATALOG_ID, enrichRes.Compliance.Control.CatalogId)
 		attrs.PutStr(COMPLIANCE_CONTROL_CATEGORY, enrichRes.Compliance.Control.Category)
