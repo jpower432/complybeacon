@@ -95,7 +95,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 						Requirements: m.extractRequirements(ctrlData.Mappings),
 						Frameworks:   m.extractStandards(ctrlData.Mappings),
 					},
-					Status: api.ComplianceStatus(status),
+					Status:           api.ComplianceStatus(status),
 					EnrichmentStatus: "success",
 				}
 
