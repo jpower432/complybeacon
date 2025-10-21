@@ -58,7 +58,7 @@ func (m *Mapper) PluginName() mapper.ID {
 func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 
 	// Map decision to status
-	status, statusId := m.mapDecision(evidence.PolicyEvaluationStatus)
+	status := m.mapDecision(evidence.PolicyEvaluationStatus)
 
 	// Track enrichment status
 	enrichmentStatus := "unmapped"
@@ -95,10 +95,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 						Requirements: m.extractRequirements(ctrlData.Mappings),
 						Frameworks:   m.extractStandards(ctrlData.Mappings),
 					},
-					Status: api.Status{
-						Title: status,
-						Id:    &statusId,
-					},
+					Status: api.ComplianceStatus(status),
 					EnrichmentStatus: "success",
 				}
 
@@ -124,16 +121,16 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 }
 
 // mapDecision maps a decision string to status and status ID.
-func (m *Mapper) mapDecision(status api.EvidencePolicyEvaluationStatus) (api.StatusTitle, api.StatusId) {
+func (m *Mapper) mapDecision(status api.EvidencePolicyEvaluationStatus) api.ComplianceStatus {
 	switch status {
 	case api.EvidencePolicyEvaluationStatusPassed:
-		return api.COMPLIANT, api.N0
+		return api.COMPLIANT
 	case api.EvidencePolicyEvaluationStatusFailed:
-		return api.NONCOMPLIANT, api.N1
+		return api.NONCOMPLIANT
 	case api.EvidencePolicyEvaluationStatusNotRun, api.EvidencePolicyEvaluationStatusNotApplicable:
-		return api.NOTAPPLICABLE, api.N3
+		return api.NOTAPPLICABLE
 	default:
-		return api.UNKNOWN, api.N99
+		return api.UNKNOWN
 	}
 }
 
