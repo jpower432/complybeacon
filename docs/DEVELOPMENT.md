@@ -58,9 +58,10 @@ The project uses `podman-compose` for container orchestration. Install it if you
 
 ```bash
 # Install podman-compose
-pip3 install podman-compose
-# or
 pip install podman-compose
+
+# alternatively for Fedora:
+dnf install podman-compose
 
 # Verify installation
 podman-compose --version
