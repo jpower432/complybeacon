@@ -24,9 +24,9 @@ func (m *mockMapper) PluginName() ID {
 func (m *mockMapper) Map(evidence api.Evidence, scope Scope) api.Compliance {
 	return api.Compliance{
 		Control: api.ComplianceControl{
-			Id:         evidence.PolicyRuleId,
-			Category:   "test-category",
-			CatalogId:  "test-catalog",
+			Id:        evidence.PolicyRuleId,
+			Category:  "test-category",
+			CatalogId: "test-catalog",
 		},
 		Frameworks: api.ComplianceFrameworks{
 			Requirements: []string{"req-1"},
