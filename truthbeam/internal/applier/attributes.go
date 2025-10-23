@@ -1,6 +1,6 @@
 // DO NOT EDIT, this is an auto-generated file
 
-package client
+package applier
 
 // Unique identifier for the compliance assessment run or session. Used to group findings from the same assessment execution
 const COMPLIANCE_ASSESSMENT_ID = "compliance.assessment.id"
@@ -79,3 +79,4 @@ const POLICY_TARGET_NAME = "policy.target.name"
 
 // Type of the resource or entity being evaluated or enforced against
 const POLICY_TARGET_TYPE = "policy.target.type"
+

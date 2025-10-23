@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/collector/processor"
 	"go.uber.org/zap"
 
+	"github.com/complytime/complybeacon/truthbeam/internal/applier"
 	"github.com/complytime/complybeacon/truthbeam/internal/client"
 )
 
@@ -18,9 +19,8 @@ type truthBeamProcessor struct {
 
 	logger *zap.Logger
 
-	client *client.Client
-
-	// TODO: Cache results by policy id
+	client  *client.CacheableClient
+	applier *applier.Applier
 }
 
 func newTruthBeamProcessor(conf component.Config, set processor.Settings) (*truthBeamProcessor, error) {
@@ -29,18 +29,12 @@ func newTruthBeamProcessor(conf component.Config, set processor.Settings) (*trut
 		return nil, errors.New("invalid configuration provided")
 	}
 
-	// TODO: Apply additional options from client config including
-	// mTLS settings
-	cl, err := client.NewClient(cfg.ClientConfig.Endpoint)
-	if err != nil {
-		return nil, err
-	}
-
 	return &truthBeamProcessor{
 		config:    cfg,
 		telemetry: set.TelemetrySettings,
 		logger:    set.Logger,
-		client:    cl,
+		client:    nil,
+		applier:   applier.NewApplier(set.Logger),
 	}, nil
 }
 
@@ -52,17 +46,71 @@ func (t *truthBeamProcessor) processLogs(ctx context.Context, ld plog.Logs) (plo
 		for j := 0; j < ilss.Len(); j++ {
 			ils := ilss.At(j)
 			logs := ils.LogRecords()
-			resource := rs.Resource()
 			for k := 0; k < logs.Len(); k++ {
 				logRecord := logs.At(k)
-				err := client.ApplyAttributes(ctx, t.client, t.config.ClientConfig.Endpoint, resource, logRecord)
+
+				policy, status, err := t.applier.Extract(logRecord)
+				if err != nil {
+					t.logger.Error("Failed to extract evidence from log record", zap.Error(err))
+					continue
+				}
+
+				// Get cached data
+				enrichment, err := t.client.Retrieve(ctx, policy)
 				if err != nil {
 					// We don't want to return an error here to ensure the evidence
-					// is not dropped. It will just be uncategorized.
-					t.logger.Error("failed to apply attributes", zap.Error(err))
+					// is not dropped. It will just be unmapped.
+
+					t.logger.Error("failed to get enrichment",
+						zap.String("policy_id", policy.PolicyRuleId),
+						zap.Error(err))
+					continue
+				}
+
+				err = t.applier.Apply(logRecord, enrichment, status)
+				if err != nil {
+					t.logger.Error("failed to apply enrichment",
+						zap.String("policy_id", policy.PolicyRuleId),
+						zap.Error(err))
 				}
 			}
 		}
 	}
 	return ld, nil
+}
+
+// start will add HTTP client and pre-fetch any policy data
+func (t *truthBeamProcessor) start(ctx context.Context, host component.Host) error {
+	httpClient, err := t.config.ClientConfig.ToClient(ctx, host, t.telemetry)
+	if err != nil {
+		return err
+	}
+
+	baseClient, err := client.NewClient(t.config.ClientConfig.Endpoint, client.WithHTTPClient(httpClient))
+	if err != nil {
+		return err
+	}
+
+	t.client = client.NewCacheableClient(baseClient, t.logger)
+
+	// Pre-fetch any configured policy data
+	// FIXME: Update config to provide all needed information
+	if len(t.config.Prefetch) > 0 {
+		t.logger.Info("Starting prefetch of policy data",
+			zap.Strings("prefetch_urls", t.config.Prefetch))
+
+		var policyList []client.Policy
+		for _, id := range t.config.Prefetch {
+			policyList = append(policyList, client.Policy{
+				PolicyRuleId:     id,
+				PolicyEngineName: "all",
+			})
+		}
+
+		if err := t.client.Prefetch(ctx, policyList); err != nil {
+			t.logger.Warn("Failed to prefetch some policy data", zap.Error(err))
+		}
+	}
+
+	return nil
 }

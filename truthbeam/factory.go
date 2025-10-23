@@ -54,5 +54,6 @@ func createLogsProcessor(
 		next,
 		tbProcessor.processLogs,
 		processorhelper.WithCapabilities(processorCapabilities),
+		processorhelper.WithStart(tbProcessor.start),
 	)
 }
