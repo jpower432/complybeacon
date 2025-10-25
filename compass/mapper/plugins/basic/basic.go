@@ -61,7 +61,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 	status := m.mapDecision(evidence.PolicyEvaluationStatus)
 
 	// Track enrichment status
-	enrichmentStatus := "unmapped"
+	enrichmentStatus := api.ComplianceEnrichmentStatusUnmapped
 	var failureReasons []string
 
 	// Process each catalog
@@ -96,7 +96,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 						Frameworks:   m.extractStandards(ctrlData.Mappings),
 					},
 					Status:           api.ComplianceStatus(status),
-					EnrichmentStatus: "success",
+					EnrichmentStatus: api.ComplianceEnrichmentStatusSuccess,
 				}
 
 				return compliance
@@ -116,7 +116,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 	}
 
 	return api.Compliance{
-		EnrichmentStatus: api.ComplianceEnrichmentStatus(enrichmentStatus),
+		EnrichmentStatus: enrichmentStatus,
 	}
 }
 
