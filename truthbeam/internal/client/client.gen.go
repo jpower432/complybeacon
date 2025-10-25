@@ -12,24 +12,14 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 // Defines values for ComplianceEnrichmentStatus.
 const (
-	ComplianceEnrichmentStatusPartial  ComplianceEnrichmentStatus = "partial"
-	ComplianceEnrichmentStatusSuccess  ComplianceEnrichmentStatus = "success"
-	ComplianceEnrichmentStatusUnknown  ComplianceEnrichmentStatus = "unknown"
-	ComplianceEnrichmentStatusUnmapped ComplianceEnrichmentStatus = "unmapped"
-)
-
-// Defines values for ComplianceStatus.
-const (
-	COMPLIANT     ComplianceStatus = "COMPLIANT"
-	EXEMPT        ComplianceStatus = "EXEMPT"
-	NONCOMPLIANT  ComplianceStatus = "NON_COMPLIANT"
-	NOTAPPLICABLE ComplianceStatus = "NOT_APPLICABLE"
-	UNKNOWN       ComplianceStatus = "UNKNOWN"
+	Partial  ComplianceEnrichmentStatus = "partial"
+	Success  ComplianceEnrichmentStatus = "success"
+	Unknown  ComplianceEnrichmentStatus = "unknown"
+	Unmapped ComplianceEnrichmentStatus = "unmapped"
 )
 
 // Defines values for ComplianceRiskLevel.
@@ -41,19 +31,9 @@ const (
 	Medium        ComplianceRiskLevel = "Medium"
 )
 
-// Defines values for EvidencePolicyEvaluationStatus.
-const (
-	EvidencePolicyEvaluationStatusFailed        EvidencePolicyEvaluationStatus = "Failed"
-	EvidencePolicyEvaluationStatusNeedsReview   EvidencePolicyEvaluationStatus = "Needs Review"
-	EvidencePolicyEvaluationStatusNotApplicable EvidencePolicyEvaluationStatus = "Not Applicable"
-	EvidencePolicyEvaluationStatusNotRun        EvidencePolicyEvaluationStatus = "Not Run"
-	EvidencePolicyEvaluationStatusPassed        EvidencePolicyEvaluationStatus = "Passed"
-	EvidencePolicyEvaluationStatusUnknown       EvidencePolicyEvaluationStatus = "Unknown"
-)
-
-// Compliance Compliance details from OCSF Security Control Profile.
+// Compliance Compliance metadata including control mappings, framework requirements, and risk assessments. Contains static metadata that can be cached.
 type Compliance struct {
-	// Control Security control information for compliance assessment
+	// Control Security control metadata including identification, categorization, and remediation guidance
 	Control ComplianceControl `json:"control"`
 
 	// EnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
@@ -64,18 +44,12 @@ type Compliance struct {
 
 	// Risk Compliance risk assessment information
 	Risk *ComplianceRisk `json:"risk,omitempty"`
-
-	// Status Compliance status
-	Status ComplianceStatus `json:"status"`
 }
 
 // ComplianceEnrichmentStatus Status of the compliance enrichment process: success, unmapped, partial, or unknown.
 type ComplianceEnrichmentStatus string
 
-// ComplianceStatus Compliance status
-type ComplianceStatus string
-
-// ComplianceControl Security control information for compliance assessment
+// ComplianceControl Security control metadata including identification, categorization, and remediation guidance
 type ComplianceControl struct {
 	// Applicability Environments or contexts where this control applies
 	Applicability *[]string `json:"applicability,omitempty"`
@@ -105,23 +79,11 @@ type ComplianceFrameworks struct {
 // ComplianceRisk Compliance risk assessment information
 type ComplianceRisk struct {
 	// Level Risk level associated with non-compliance
-	Level *ComplianceRiskLevel `json:"level,omitempty"`
+	Level ComplianceRiskLevel `json:"level"`
 }
 
 // ComplianceRiskLevel Risk level associated with non-compliance
 type ComplianceRiskLevel string
-
-// EnrichmentRequest Request payload for telemetry attribute enrichment
-type EnrichmentRequest struct {
-	// Evidence Complete evidence log from policy engines and compliance assessment tools
-	Evidence Evidence `json:"evidence"`
-}
-
-// EnrichmentResponse Enriched compliance finding with risk attributes and threat mappings.
-type EnrichmentResponse struct {
-	// Compliance Compliance details from OCSF Security Control Profile.
-	Compliance Compliance `json:"compliance"`
-}
 
 // Error defines model for Error.
 type Error struct {
@@ -132,29 +94,29 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-// Evidence Complete evidence log from policy engines and compliance assessment tools
-type Evidence struct {
+// MetadataRequest Request payload for retrieving compliance metadata for policy evidence
+type MetadataRequest struct {
+	// Policy Complete evidence log from policy engines and compliance assessment tools
+	Policy Policy `json:"policy"`
+}
+
+// MetadataResponse Complete compliance metadata including control mappings, frameworks, risk assessment, and dynamic status
+type MetadataResponse struct {
+	// Compliance Compliance metadata including control mappings, framework requirements, and risk assessments. Contains static metadata that can be cached.
+	Compliance Compliance `json:"compliance"`
+}
+
+// Policy Complete evidence log from policy engines and compliance assessment tools
+type Policy struct {
 	// PolicyEngineName Name of the policy engine that performed the evaluation or enforcement action
 	PolicyEngineName string `json:"policyEngineName"`
 
-	// PolicyEvaluationStatus Result of the policy evaluation
-	PolicyEvaluationStatus EvidencePolicyEvaluationStatus `json:"policyEvaluationStatus"`
-
 	// PolicyRuleId Unique identifier for the policy rule being evaluated or enforced
 	PolicyRuleId string `json:"policyRuleId"`
-
-	// RawData Raw JSON output from the policy engine
-	RawData *map[string]interface{} `json:"rawData,omitempty"`
-
-	// Timestamp The time when the raw evidence was generated
-	Timestamp time.Time `json:"timestamp"`
 }
 
-// EvidencePolicyEvaluationStatus Result of the policy evaluation
-type EvidencePolicyEvaluationStatus string
-
-// PostV1EnrichJSONRequestBody defines body for PostV1Enrich for application/json ContentType.
-type PostV1EnrichJSONRequestBody = EnrichmentRequest
+// PostV1MetadataJSONRequestBody defines body for PostV1Metadata for application/json ContentType.
+type PostV1MetadataJSONRequestBody = MetadataRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -229,14 +191,14 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// PostV1EnrichWithBody request with any body
-	PostV1EnrichWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostV1MetadataWithBody request with any body
+	PostV1MetadataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostV1Enrich(ctx context.Context, body PostV1EnrichJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostV1Metadata(ctx context.Context, body PostV1MetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) PostV1EnrichWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostV1EnrichRequestWithBody(c.Server, contentType, body)
+func (c *Client) PostV1MetadataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostV1MetadataRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -247,8 +209,8 @@ func (c *Client) PostV1EnrichWithBody(ctx context.Context, contentType string, b
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostV1Enrich(ctx context.Context, body PostV1EnrichJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostV1EnrichRequest(c.Server, body)
+func (c *Client) PostV1Metadata(ctx context.Context, body PostV1MetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostV1MetadataRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -259,19 +221,19 @@ func (c *Client) PostV1Enrich(ctx context.Context, body PostV1EnrichJSONRequestB
 	return c.Client.Do(req)
 }
 
-// NewPostV1EnrichRequest calls the generic PostV1Enrich builder with application/json body
-func NewPostV1EnrichRequest(server string, body PostV1EnrichJSONRequestBody) (*http.Request, error) {
+// NewPostV1MetadataRequest calls the generic PostV1Metadata builder with application/json body
+func NewPostV1MetadataRequest(server string, body PostV1MetadataJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostV1EnrichRequestWithBody(server, "application/json", bodyReader)
+	return NewPostV1MetadataRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostV1EnrichRequestWithBody generates requests for PostV1Enrich with any type of body
-func NewPostV1EnrichRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostV1MetadataRequestWithBody generates requests for PostV1Metadata with any type of body
+func NewPostV1MetadataRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -279,7 +241,7 @@ func NewPostV1EnrichRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1/enrich")
+	operationPath := fmt.Sprintf("/v1/metadata")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -342,21 +304,21 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// PostV1EnrichWithBodyWithResponse request with any body
-	PostV1EnrichWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1EnrichResponse, error)
+	// PostV1MetadataWithBodyWithResponse request with any body
+	PostV1MetadataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1MetadataResponse, error)
 
-	PostV1EnrichWithResponse(ctx context.Context, body PostV1EnrichJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1EnrichResponse, error)
+	PostV1MetadataWithResponse(ctx context.Context, body PostV1MetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1MetadataResponse, error)
 }
 
-type PostV1EnrichResponse struct {
+type PostV1MetadataResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *EnrichmentResponse
+	JSON200      *MetadataResponse
 	JSONDefault  *Error
 }
 
 // Status returns HTTPResponse.Status
-func (r PostV1EnrichResponse) Status() string {
+func (r PostV1MetadataResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -364,46 +326,46 @@ func (r PostV1EnrichResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostV1EnrichResponse) StatusCode() int {
+func (r PostV1MetadataResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// PostV1EnrichWithBodyWithResponse request with arbitrary body returning *PostV1EnrichResponse
-func (c *ClientWithResponses) PostV1EnrichWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1EnrichResponse, error) {
-	rsp, err := c.PostV1EnrichWithBody(ctx, contentType, body, reqEditors...)
+// PostV1MetadataWithBodyWithResponse request with arbitrary body returning *PostV1MetadataResponse
+func (c *ClientWithResponses) PostV1MetadataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1MetadataResponse, error) {
+	rsp, err := c.PostV1MetadataWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostV1EnrichResponse(rsp)
+	return ParsePostV1MetadataResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostV1EnrichWithResponse(ctx context.Context, body PostV1EnrichJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1EnrichResponse, error) {
-	rsp, err := c.PostV1Enrich(ctx, body, reqEditors...)
+func (c *ClientWithResponses) PostV1MetadataWithResponse(ctx context.Context, body PostV1MetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1MetadataResponse, error) {
+	rsp, err := c.PostV1Metadata(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostV1EnrichResponse(rsp)
+	return ParsePostV1MetadataResponse(rsp)
 }
 
-// ParsePostV1EnrichResponse parses an HTTP response from a PostV1EnrichWithResponse call
-func ParsePostV1EnrichResponse(rsp *http.Response) (*PostV1EnrichResponse, error) {
+// ParsePostV1MetadataResponse parses an HTTP response from a PostV1MetadataWithResponse call
+func ParsePostV1MetadataResponse(rsp *http.Response) (*PostV1MetadataResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostV1EnrichResponse{
+	response := &PostV1MetadataResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest EnrichmentResponse
+		var dest MetadataResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
