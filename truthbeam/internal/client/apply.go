@@ -35,6 +35,7 @@ func ApplyAttributes(ctx context.Context, client *Client, serverURL string, _ pc
 	}
 
 	if len(missingAttrs) > 0 {
+		attrs.PutStr(COMPLIANCE_ENRICHMENT_STATUS, string(ComplianceEnrichmentStatusSkipped))
 		return fmt.Errorf("missing required attributes: %s", strings.Join(missingAttrs, ", "))
 	}
 
