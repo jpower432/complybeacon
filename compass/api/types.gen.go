@@ -10,6 +10,7 @@ import (
 // Defines values for ComplianceEnrichmentStatus.
 const (
 	ComplianceEnrichmentStatusPartial  ComplianceEnrichmentStatus = "partial"
+	ComplianceEnrichmentStatusSkipped  ComplianceEnrichmentStatus = "skipped"
 	ComplianceEnrichmentStatusSuccess  ComplianceEnrichmentStatus = "success"
 	ComplianceEnrichmentStatusUnknown  ComplianceEnrichmentStatus = "unknown"
 	ComplianceEnrichmentStatusUnmapped ComplianceEnrichmentStatus = "unmapped"

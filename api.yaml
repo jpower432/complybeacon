@@ -146,7 +146,7 @@ components:
         enrichmentStatus:
           type: string
           description: "Status of the compliance enrichment process: success, unmapped, partial, or unknown."
-          enum: ["success", "unmapped", "partial", "unknown"]
+          enum: ["success", "unmapped", "partial", "unknown", "skipped"]
           example: "success"
       additionalProperties: false
       required:
