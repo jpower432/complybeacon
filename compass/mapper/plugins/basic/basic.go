@@ -95,7 +95,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 						Requirements: m.extractRequirements(ctrlData.Mappings),
 						Frameworks:   m.extractStandards(ctrlData.Mappings),
 					},
-					Status:           api.ComplianceStatus(status),
+					Status:           status,
 					EnrichmentStatus: api.ComplianceEnrichmentStatusSuccess,
 				}
 
@@ -116,7 +116,17 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 	}
 
 	return api.Compliance{
+		Status: api.UNKNOWN,
+		Control: api.ComplianceControl{
+			Id:        "UNMAPPED",
+			CatalogId: "UNMAPPED",
+			Category:  "UNCATEGORIZED",
+		},
 		EnrichmentStatus: enrichmentStatus,
+		Frameworks: api.ComplianceFrameworks{
+			Frameworks:   []string{},
+			Requirements: []string{},
+		},
 	}
 }
 

@@ -138,8 +138,7 @@ func TestBasicMapper_MapUnmapped(t *testing.T) {
 	// with only enrichment status set to "unmapped"
 	assert.NotNil(t, compliance)
 	assert.Equal(t, api.ComplianceEnrichmentStatusUnmapped, compliance.EnrichmentStatus)
-	// Status should be empty when no plans are configured
-	assert.Equal(t, api.ComplianceStatus(""), compliance.Status)
+	assert.Equal(t, api.UNKNOWN, compliance.Status)
 }
 
 func TestBasicMapper_AddEvaluationPlan(t *testing.T) {
