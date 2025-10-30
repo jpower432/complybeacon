@@ -188,9 +188,16 @@ func TestApplyAttributes_ServerResponses(t *testing.T) {
 				response := EnrichmentResponse{
 					Compliance: Compliance{
 						EnrichmentStatus: ComplianceEnrichmentStatusUnknown,
-						Status:           "",
-						Control:          ComplianceControl{},
-						Frameworks:       ComplianceFrameworks{},
+						Status:           UNKNOWN,
+						Control: ComplianceControl{
+							Id:        "Unknown",
+							Category:  "Unknown",
+							CatalogId: "Unknown",
+						},
+						Frameworks: ComplianceFrameworks{
+							Frameworks:   []string{},
+							Requirements: []string{},
+						},
 					},
 				}
 				_ = json.NewEncoder(w).Encode(response)
