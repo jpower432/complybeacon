@@ -17,7 +17,7 @@ const COMPLIANCE_CONTROL_CATEGORY = "compliance.control.category"
 // Unique identifier for the security control and assessment requirement being assessed
 const COMPLIANCE_CONTROL_ID = "compliance.control.id"
 
-// Status of the compliance enrichment process: success, unmapped, partial, or unknown
+// Status of the compliance enrichment process: Success, Unmapped, Partial, Unknown, or Skipped
 const COMPLIANCE_ENRICHMENT_STATUS = "compliance.enrichment.status"
 
 // Regulatory or industry standards being evaluated for compliance
@@ -44,7 +44,7 @@ const COMPLIANCE_REQUIREMENTS = "compliance.requirements"
 // Risk level associated with non-compliance: Critical, High, Medium, Low, or Informational
 const COMPLIANCE_RISK_LEVEL = "compliance.risk.level"
 
-// Compliance verdict: COMPLIANT, NON_COMPLIANT, EXEMPT, NOT_APPLICABLE, or UNKNOWN
+// Compliance verdict: Compliant, Non-Compliant, Exempt, Not Applicable, or Unknown
 const COMPLIANCE_STATUS = "compliance.status"
 
 // Name of the policy engine that performed the evaluation or enforcement action
@@ -79,3 +79,4 @@ const POLICY_TARGET_NAME = "policy.target.name"
 
 // Type of the resource or entity being evaluated or enforced against
 const POLICY_TARGET_TYPE = "policy.target.type"
+
