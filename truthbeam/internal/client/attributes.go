@@ -29,7 +29,7 @@ const COMPLIANCE_REMEDIATION_ACTION = "compliance.remediation.action"
 // Description of the recommended remediation strategy for this control
 const COMPLIANCE_REMEDIATION_DESCRIPTION = "compliance.remediation.description"
 
-// Whether the exception was is active for this enforcement
+// Whether the exception is active for this enforcement
 const COMPLIANCE_REMEDIATION_EXCEPTION_ACTIVE = "compliance.remediation.exception.active"
 
 // Unique identifier for the approved exception, if applicable

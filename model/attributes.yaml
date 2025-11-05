@@ -282,7 +282,7 @@ groups:
         type: boolean
         stability: development
         brief: >
-          Whether the exception was is active for this enforcement.
+          Whether the exception is active for this enforcement.
         examples: [ true, false ]
         requirement_level: opt_in
       - id: compliance.remediation.description
