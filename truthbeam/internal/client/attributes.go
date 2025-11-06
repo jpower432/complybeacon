@@ -79,3 +79,4 @@ const POLICY_TARGET_NAME = "policy.target.name"
 
 // Type of the resource or entity being evaluated or enforced against
 const POLICY_TARGET_TYPE = "policy.target.type"
+

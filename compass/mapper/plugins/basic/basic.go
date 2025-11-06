@@ -60,8 +60,6 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 	// Map decision to status
 	status := m.mapDecision(evidence.PolicyEvaluationStatus)
 
-	// Track enrichment status
-	enrichmentStatus := api.ComplianceEnrichmentStatusUnmapped
 	var failureReasons []string
 
 	// Process each catalog
@@ -122,7 +120,7 @@ func (m *Mapper) Map(evidence api.Evidence, scope mapper.Scope) api.Compliance {
 			CatalogId: "UNMAPPED",
 			Category:  "UNCATEGORIZED",
 		},
-		EnrichmentStatus: enrichmentStatus,
+		EnrichmentStatus: api.ComplianceEnrichmentStatusUnmapped,
 		Frameworks: api.ComplianceFrameworks{
 			Frameworks:   []string{},
 			Requirements: []string{},
